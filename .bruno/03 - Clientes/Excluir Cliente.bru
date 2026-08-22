@@ -1,0 +1,15 @@
+meta {
+  name: Excluir Cliente
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/clientes/{{clienteId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

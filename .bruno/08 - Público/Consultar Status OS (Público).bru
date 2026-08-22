@@ -1,0 +1,16 @@
+meta {
+  name: Consultar Status OS (Público)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/ordens-servico/{{osId}}/status
+  body: none
+  auth: none
+}
+
+docs {
+  Rota pública para o cliente acompanhar o progresso da OS informando apenas o ID.
+  Não requer token JWT.
+}

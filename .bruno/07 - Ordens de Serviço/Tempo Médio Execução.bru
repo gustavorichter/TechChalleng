@@ -1,0 +1,19 @@
+meta {
+  name: Tempo Médio Execução
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/v1/ordens-servico/metricas/tempo-medio
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Retorna o tempo médio em horas entre criação e entrega das OS finalizadas.
+}

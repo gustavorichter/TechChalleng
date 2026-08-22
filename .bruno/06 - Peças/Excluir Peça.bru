@@ -1,0 +1,15 @@
+meta {
+  name: Excluir Peça
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/pecas/{{pecaId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

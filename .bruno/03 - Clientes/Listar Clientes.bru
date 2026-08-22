@@ -1,0 +1,15 @@
+meta {
+  name: Listar Clientes
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/clientes
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

@@ -1,0 +1,9 @@
+.git
+.gitignore
+*.exe
+server
+coverage.out
+coverage.html
+README.md
+.env
+.env.local

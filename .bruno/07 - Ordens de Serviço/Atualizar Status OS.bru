@@ -1,0 +1,32 @@
+meta {
+  name: Atualizar Status OS
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/api/v1/ordens-servico/{{osId}}/status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "status": "Em diagnóstico"
+  }
+}
+
+docs {
+  Sequência válida:
+  Recebida → Em diagnóstico → Aguardando aprovação → Em execução → Finalizada → Entregue
+  
+  Ao atingir "Finalizada", o estoque é baixado automaticamente.
+}

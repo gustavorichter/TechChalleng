@@ -1,0 +1,19 @@
+meta {
+  name: Avançar Status OS
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/api/v1/ordens-servico/{{osId}}/avancar
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Avança automaticamente para o próximo status na sequência da máquina de estados.
+}

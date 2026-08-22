@@ -36,7 +36,7 @@ pkg/validator/    → Validadores reutilizáveis (CPF, CNPJ, Placa)
 
 ## Stack Técnica
 
-- **Go 1.22+** com Go Modules
+- **Go 1.25+** com Go Modules
 - **Gin** — framework web
 - **PostgreSQL 16** — persistência (driver `pgx/v5`)
 - **JWT** — autenticação administrativa
@@ -106,6 +106,31 @@ docker compose down -v
 | Usuário admin | `admin` |
 | Senha admin | `admin123` |
 | PostgreSQL | `localhost:5432` (user: `oficina`, senha: `oficina_secret`, db: `oficina_db`) |
+
+### Collection Bruno (`.bruno/`)
+
+O projeto inclui uma collection [Bruno](https://www.usebruno.com/) pronta para testar todos os endpoints.
+
+1. Instale o [Bruno](https://www.usebruno.com/downloads)
+2. Abra a pasta `.bruno/` do projeto (**Open Collection**)
+3. Selecione o ambiente **Local**
+4. Execute **02 - Auth → Login** (salva o `token` automaticamente)
+5. Siga a ordem das pastas — os IDs (`clienteId`, `veiculoId`, etc.) são capturados nas respostas de criação
+
+```
+.bruno/
+├── bruno.json
+├── collection.bru
+├── environments/Local.bru
+├── 01 - Health/
+├── 02 - Auth/
+├── 03 - Clientes/
+├── 04 - Veículos/
+├── 05 - Serviços/
+├── 06 - Peças/
+├── 07 - Ordens de Serviço/
+└── 08 - Público/
+```
 
 ---
 

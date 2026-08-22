@@ -1,0 +1,30 @@
+meta {
+  name: Adicionar Peça à OS
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/v1/ordens-servico/{{osId}}/pecas
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "peca_id": "{{pecaId}}",
+    "quantidade": 2
+  }
+}
+
+docs {
+  Valida saldo de estoque antes de incluir a peça na OS.
+}

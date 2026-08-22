@@ -1,0 +1,29 @@
+meta {
+  name: Adicionar Serviço à OS
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/v1/ordens-servico/{{osId}}/servicos
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "servico_id": "{{servicoId}}"
+  }
+}
+
+docs {
+  Recalcula o orçamento automaticamente somando a mão de obra do serviço.
+}
