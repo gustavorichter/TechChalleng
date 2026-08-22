@@ -73,10 +73,10 @@ O comando acima irá:
 
 ```bash
 # Health check
-curl http://localhost:8080/health
+curl http://localhost:8081/health
 
 # Swagger UI (navegador)
-# http://localhost:8080/swagger/index.html
+# http://localhost:8081/swagger/index.html
 ```
 
 Resposta esperada do health check:
@@ -97,12 +97,34 @@ Para remover também o volume do banco:
 docker compose down -v
 ```
 
+### Solução de problemas
+
+**Container `oficina_api` fica em `Created` e não sobe**
+
+Geralmente a porta do host já está em uso. Verifique:
+
+```bash
+docker compose logs api
+```
+
+Se aparecer `Bind for 0.0.0.0:8080 failed: port is already allocated`, outro processo ou container está usando a porta.
+
+Por padrão, este projeto expõe a API na porta **8081** do host para evitar conflito com outros serviços. Para usar outra porta:
+
+```bash
+# Windows PowerShell
+$env:APP_HOST_PORT=8090; docker compose up --build -d
+
+# Linux/macOS
+APP_HOST_PORT=8090 docker compose up --build -d
+```
+
 ### Credenciais padrão (desenvolvimento)
 
 | Recurso | Valor |
 |---------|-------|
-| API | `http://localhost:8080` |
-| Swagger | `http://localhost:8080/swagger/index.html` |
+| API | `http://localhost:8081` |
+| Swagger | `http://localhost:8081/swagger/index.html` |
 | Usuário admin | `admin` |
 | Senha admin | `admin123` |
 | PostgreSQL | `localhost:5432` (user: `oficina`, senha: `oficina_secret`, db: `oficina_db`) |
@@ -143,7 +165,7 @@ Fluxo completo: autenticação → cadastros → OS → acompanhamento público.
 ### 1. Login (obter JWT)
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/auth/login \
+curl -X POST http://localhost:8081/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d "{\"username\":\"admin\",\"password\":\"admin123\"}"
 ```
@@ -160,7 +182,7 @@ Resposta:
 ### 2. Criar cliente
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/clientes \
+curl -X POST http://localhost:8081/api/v1/clientes \
   -H "Authorization: Bearer <TOKEN>" \
   -H "Content-Type: application/json" \
   -d "{\"nome\":\"João Silva\",\"cpf\":\"529.982.247-25\",\"email\":\"joao@email.com\",\"telefone\":\"11999999999\"}"
@@ -169,7 +191,7 @@ curl -X POST http://localhost:8080/api/v1/clientes \
 ### 3. Criar veículo
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/veiculos \
+curl -X POST http://localhost:8081/api/v1/veiculos \
   -H "Authorization: Bearer <TOKEN>" \
   -H "Content-Type: application/json" \
   -d "{\"cliente_id\":\"<CLIENTE_ID>\",\"placa\":\"ABC1D23\",\"marca\":\"Volkswagen\",\"modelo\":\"Gol\",\"ano\":2022}"
@@ -178,7 +200,7 @@ curl -X POST http://localhost:8080/api/v1/veiculos \
 ### 4. Criar serviço
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/servicos \
+curl -X POST http://localhost:8081/api/v1/servicos \
   -H "Authorization: Bearer <TOKEN>" \
   -H "Content-Type: application/json" \
   -d "{\"nome\":\"Troca de óleo\",\"descricao\":\"Troca completa com filtro\",\"valor_mao_obra\":\"150.00\"}"
@@ -187,7 +209,7 @@ curl -X POST http://localhost:8080/api/v1/servicos \
 ### 5. Criar peça (estoque)
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/pecas \
+curl -X POST http://localhost:8081/api/v1/pecas \
   -H "Authorization: Bearer <TOKEN>" \
   -H "Content-Type: application/json" \
   -d "{\"nome\":\"Filtro de óleo\",\"codigo\":\"FLT001\",\"valor_unitario\":\"45.00\",\"quantidade_estoque\":20}"
@@ -196,7 +218,7 @@ curl -X POST http://localhost:8080/api/v1/pecas \
 ### 6. Criar ordem de serviço
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/ordens-servico \
+curl -X POST http://localhost:8081/api/v1/ordens-servico \
   -H "Authorization: Bearer <TOKEN>" \
   -H "Content-Type: application/json" \
   -d "{\"cliente_id\":\"<CLIENTE_ID>\",\"veiculo_id\":\"<VEICULO_ID>\",\"observacoes\":\"Barulho no motor\"}"
@@ -205,7 +227,7 @@ curl -X POST http://localhost:8080/api/v1/ordens-servico \
 ### 7. Adicionar serviço à OS (recalcula orçamento)
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/ordens-servico/<OS_ID>/servicos \
+curl -X POST http://localhost:8081/api/v1/ordens-servico/<OS_ID>/servicos \
   -H "Authorization: Bearer <TOKEN>" \
   -H "Content-Type: application/json" \
   -d "{\"servico_id\":\"<SERVICO_ID>\"}"
@@ -214,7 +236,7 @@ curl -X POST http://localhost:8080/api/v1/ordens-servico/<OS_ID>/servicos \
 ### 8. Adicionar peça à OS (valida estoque)
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/ordens-servico/<OS_ID>/pecas \
+curl -X POST http://localhost:8081/api/v1/ordens-servico/<OS_ID>/pecas \
   -H "Authorization: Bearer <TOKEN>" \
   -H "Content-Type: application/json" \
   -d "{\"peca_id\":\"<PECA_ID>\",\"quantidade\":2}"
@@ -225,7 +247,7 @@ curl -X POST http://localhost:8080/api/v1/ordens-servico/<OS_ID>/pecas \
 Transição manual para um status específico:
 
 ```bash
-curl -X PUT http://localhost:8080/api/v1/ordens-servico/<OS_ID>/status \
+curl -X PUT http://localhost:8081/api/v1/ordens-servico/<OS_ID>/status \
   -H "Authorization: Bearer <TOKEN>" \
   -H "Content-Type: application/json" \
   -d "{\"status\":\"Em diagnóstico\"}"
@@ -234,7 +256,7 @@ curl -X PUT http://localhost:8080/api/v1/ordens-servico/<OS_ID>/status \
 Ou avançar automaticamente para o próximo status da sequência:
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/ordens-servico/<OS_ID>/avancar \
+curl -X POST http://localhost:8081/api/v1/ordens-servico/<OS_ID>/avancar \
   -H "Authorization: Bearer <TOKEN>"
 ```
 
@@ -251,7 +273,7 @@ Recebida → Em diagnóstico → Aguardando aprovação → Em execução → Fi
 Rota pública para o cliente acompanhar a OS:
 
 ```bash
-curl http://localhost:8080/api/v1/ordens-servico/<OS_ID>/status
+curl http://localhost:8081/api/v1/ordens-servico/<OS_ID>/status
 ```
 
 Resposta:
@@ -270,15 +292,15 @@ Resposta:
 
 ```bash
 # Listar clientes
-curl http://localhost:8080/api/v1/clientes \
+curl http://localhost:8081/api/v1/clientes \
   -H "Authorization: Bearer <TOKEN>"
 
 # Buscar OS completa
-curl http://localhost:8080/api/v1/ordens-servico/<OS_ID> \
+curl http://localhost:8081/api/v1/ordens-servico/<OS_ID> \
   -H "Authorization: Bearer <TOKEN>"
 
 # Tempo médio de execução (horas)
-curl http://localhost:8080/api/v1/ordens-servico/metricas/tempo-medio \
+curl http://localhost:8081/api/v1/ordens-servico/metricas/tempo-medio \
   -H "Authorization: Bearer <TOKEN>"
 ```
 
@@ -286,19 +308,19 @@ curl http://localhost:8080/api/v1/ordens-servico/metricas/tempo-medio \
 
 ```powershell
 # Login e captura do token
-$login = Invoke-RestMethod -Uri "http://localhost:8080/api/v1/auth/login" `
+$login = Invoke-RestMethod -Uri "http://localhost:8081/api/v1/auth/login" `
   -Method POST -ContentType "application/json" `
   -Body '{"username":"admin","password":"admin123"}'
 
 $headers = @{ Authorization = "Bearer $($login.token)" }
 
 # Criar cliente
-$cliente = Invoke-RestMethod -Uri "http://localhost:8080/api/v1/clientes" `
+$cliente = Invoke-RestMethod -Uri "http://localhost:8081/api/v1/clientes" `
   -Method POST -Headers $headers -ContentType "application/json" `
   -Body '{"nome":"João Silva","cpf":"529.982.247-25","email":"joao@email.com","telefone":"11999999999"}'
 
 # Consulta pública de status (sem token)
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/ordens-servico/<OS_ID>/status"
+Invoke-RestMethod -Uri "http://localhost:8081/api/v1/ordens-servico/<OS_ID>/status"
 ```
 
 ---
@@ -368,7 +390,8 @@ go test ./internal/domain/... ./internal/application/... ./pkg/... -cover
 
 | Variável | Padrão | Descrição |
 |----------|--------|-----------|
-| `PORT` | `8080` | Porta HTTP |
+| `APP_HOST_PORT` | `8081` | Porta exposta no host (mapeada para `8080` no container) |
+| `PORT` | `8080` | Porta HTTP interna do container |
 | `DB_HOST` | `localhost` | Host PostgreSQL |
 | `DB_PORT` | `5432` | Porta PostgreSQL |
 | `DB_USER` | `oficina` | Usuário do banco |
