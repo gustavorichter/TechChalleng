@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: oficina_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: oficina
+      POSTGRES_PASSWORD: oficina_secret
+      POSTGRES_DB: oficina_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oficina -d oficina_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: oficina_api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: "8080"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: oficina
+      DB_PASSWORD: oficina_secret
+      DB_NAME: oficina_db
+      DB_SSLMODE: disable
+      JWT_SECRET: super-secret-jwt-key-change-me
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin123
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:

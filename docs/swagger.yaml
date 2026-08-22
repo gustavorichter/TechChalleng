@@ -1,0 +1,789 @@
+basePath: /api/v1
+definitions:
+  github_com_techchalleng_oficina_internal_application_dto.AdicionarPecaOSRequest:
+    properties:
+      peca_id:
+        type: string
+      quantidade:
+        minimum: 1
+        type: integer
+    required:
+    - peca_id
+    - quantidade
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.AdicionarServicoOSRequest:
+    properties:
+      servico_id:
+        type: string
+    required:
+    - servico_id
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.AtualizarStatusOSRequest:
+    properties:
+      status:
+        type: string
+    required:
+    - status
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.ClienteResponse:
+    properties:
+      cnpj:
+        type: string
+      cpf:
+        type: string
+      criado_em:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      nome:
+        type: string
+      telefone:
+        type: string
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.CriarClienteRequest:
+    properties:
+      cnpj:
+        type: string
+      cpf:
+        type: string
+      email:
+        type: string
+      nome:
+        type: string
+      telefone:
+        type: string
+    required:
+    - email
+    - nome
+    - telefone
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.CriarOSRequest:
+    properties:
+      cliente_id:
+        type: string
+      observacoes:
+        type: string
+      veiculo_id:
+        type: string
+    required:
+    - cliente_id
+    - veiculo_id
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.CriarPecaRequest:
+    properties:
+      codigo:
+        type: string
+      nome:
+        type: string
+      quantidade_estoque:
+        minimum: 0
+        type: integer
+      valor_unitario:
+        type: number
+    required:
+    - codigo
+    - nome
+    - quantidade_estoque
+    - valor_unitario
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.CriarServicoRequest:
+    properties:
+      descricao:
+        type: string
+      nome:
+        type: string
+      valor_mao_obra:
+        type: number
+    required:
+    - nome
+    - valor_mao_obra
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.CriarVeiculoRequest:
+    properties:
+      ano:
+        minimum: 1900
+        type: integer
+      cliente_id:
+        type: string
+      marca:
+        type: string
+      modelo:
+        type: string
+      placa:
+        type: string
+    required:
+    - ano
+    - cliente_id
+    - marca
+    - modelo
+    - placa
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.ItemPecaOSResponse:
+    properties:
+      nome:
+        type: string
+      peca_id:
+        type: string
+      quantidade:
+        type: integer
+      valor_unitario:
+        type: number
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.ItemServicoOSResponse:
+    properties:
+      nome:
+        type: string
+      servico_id:
+        type: string
+      valor_mao_obra:
+        type: number
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.LoginResponse:
+    properties:
+      expires_in:
+        type: integer
+      token:
+        type: string
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.OrdemServicoResponse:
+    properties:
+      atualizado_em:
+        type: string
+      cliente_id:
+        type: string
+      criado_em:
+        type: string
+      entregue_em:
+        type: string
+      id:
+        type: string
+      observacoes:
+        type: string
+      pecas:
+        items:
+          $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.ItemPecaOSResponse'
+        type: array
+      servicos:
+        items:
+          $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.ItemServicoOSResponse'
+        type: array
+      status:
+        type: string
+      valor_total:
+        type: number
+      veiculo_id:
+        type: string
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.PecaResponse:
+    properties:
+      ativo:
+        type: boolean
+      codigo:
+        type: string
+      id:
+        type: string
+      nome:
+        type: string
+      quantidade_estoque:
+        type: integer
+      valor_unitario:
+        type: number
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.ServicoResponse:
+    properties:
+      ativo:
+        type: boolean
+      descricao:
+        type: string
+      id:
+        type: string
+      nome:
+        type: string
+      valor_mao_obra:
+        type: number
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.StatusOSResponse:
+    properties:
+      criado_em:
+        type: string
+      entregue_em:
+        type: string
+      id:
+        type: string
+      status:
+        type: string
+      valor_total:
+        type: number
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.TempoMedioResponse:
+    properties:
+      tempo_medio_horas:
+        type: number
+    type: object
+  github_com_techchalleng_oficina_internal_application_dto.VeiculoResponse:
+    properties:
+      ano:
+        type: integer
+      cliente_id:
+        type: string
+      criado_em:
+        type: string
+      id:
+        type: string
+      marca:
+        type: string
+      modelo:
+        type: string
+      placa:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: suporte@oficina.com
+    name: TechChalleng
+  description: API REST para gestão de ordens de serviço, clientes, veículos, serviços
+    e estoque de peças.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Oficina Mecânica API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Realiza login e retorna token JWT
+      parameters:
+      - description: Credenciais
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.LoginResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.ErrorResponse'
+      summary: Autenticação de administrador
+      tags:
+      - auth
+  /clientes:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.ClienteResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Listar clientes
+      tags:
+      - clientes
+    post:
+      consumes:
+      - application/json
+      description: Cadastra um novo cliente (requer JWT admin)
+      parameters:
+      - description: Dados do cliente
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.CriarClienteRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.ClienteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Criar cliente
+      tags:
+      - clientes
+  /clientes/{id}:
+    delete:
+      parameters:
+      - description: ID do cliente
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Excluir cliente
+      tags:
+      - clientes
+    get:
+      parameters:
+      - description: ID do cliente
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.ClienteResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Buscar cliente por ID
+      tags:
+      - clientes
+  /ordens-servico:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.OrdemServicoResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Listar ordens de serviço
+      tags:
+      - ordens-servico
+    post:
+      consumes:
+      - application/json
+      description: Cria uma nova OS no status "Recebida"
+      parameters:
+      - description: Dados da OS
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.CriarOSRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.OrdemServicoResponse'
+      security:
+      - BearerAuth: []
+      summary: Criar ordem de serviço
+      tags:
+      - ordens-servico
+  /ordens-servico/{id}:
+    get:
+      parameters:
+      - description: ID da OS
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.OrdemServicoResponse'
+      security:
+      - BearerAuth: []
+      summary: Buscar ordem de serviço por ID
+      tags:
+      - ordens-servico
+  /ordens-servico/{id}/avancar:
+    post:
+      parameters:
+      - description: ID da OS
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.OrdemServicoResponse'
+      security:
+      - BearerAuth: []
+      summary: Avançar status da OS automaticamente
+      tags:
+      - ordens-servico
+  /ordens-servico/{id}/pecas:
+    post:
+      consumes:
+      - application/json
+      description: Verifica saldo de estoque antes de incluir
+      parameters:
+      - description: ID da OS
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Peça
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.AdicionarPecaOSRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.OrdemServicoResponse'
+      security:
+      - BearerAuth: []
+      summary: Adicionar peça à OS
+      tags:
+      - ordens-servico
+  /ordens-servico/{id}/servicos:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da OS
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Serviço
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.AdicionarServicoOSRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.OrdemServicoResponse'
+      security:
+      - BearerAuth: []
+      summary: Adicionar serviço à OS
+      tags:
+      - ordens-servico
+  /ordens-servico/{id}/status:
+    get:
+      description: Rota pública para o cliente acompanhar o progresso da OS sem autenticação
+      parameters:
+      - description: ID da OS
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.StatusOSResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.ErrorResponse'
+      summary: Consulta pública de status da OS
+      tags:
+      - ordens-servico
+    put:
+      consumes:
+      - application/json
+      description: Transição controlada por máquina de estados. Ao "Finalizada", baixa
+        estoque automaticamente.
+      parameters:
+      - description: ID da OS
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Novo status
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.AtualizarStatusOSRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.OrdemServicoResponse'
+      security:
+      - BearerAuth: []
+      summary: Atualizar status da OS
+      tags:
+      - ordens-servico
+  /ordens-servico/metricas/tempo-medio:
+    get:
+      description: Retorna o tempo médio em horas entre criação e entrega
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.TempoMedioResponse'
+      security:
+      - BearerAuth: []
+      summary: Tempo médio de execução das OS
+      tags:
+      - ordens-servico
+  /pecas:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.PecaResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Listar peças
+      tags:
+      - pecas
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Dados da peça
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.CriarPecaRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.PecaResponse'
+      security:
+      - BearerAuth: []
+      summary: Criar peça/insumo
+      tags:
+      - pecas
+  /pecas/{id}:
+    delete:
+      parameters:
+      - description: ID da peça
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Excluir peça
+      tags:
+      - pecas
+    get:
+      parameters:
+      - description: ID da peça
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.PecaResponse'
+      security:
+      - BearerAuth: []
+      summary: Buscar peça por ID
+      tags:
+      - pecas
+  /servicos:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.ServicoResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Listar serviços
+      tags:
+      - servicos
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Dados do serviço
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.CriarServicoRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.ServicoResponse'
+      security:
+      - BearerAuth: []
+      summary: Criar serviço
+      tags:
+      - servicos
+  /servicos/{id}:
+    delete:
+      parameters:
+      - description: ID do serviço
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Excluir serviço
+      tags:
+      - servicos
+    get:
+      parameters:
+      - description: ID do serviço
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.ServicoResponse'
+      security:
+      - BearerAuth: []
+      summary: Buscar serviço por ID
+      tags:
+      - servicos
+  /veiculos:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.VeiculoResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Listar veículos
+      tags:
+      - veiculos
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Dados do veículo
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.CriarVeiculoRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.VeiculoResponse'
+      security:
+      - BearerAuth: []
+      summary: Criar veículo
+      tags:
+      - veiculos
+  /veiculos/{id}:
+    delete:
+      parameters:
+      - description: ID do veículo
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Excluir veículo
+      tags:
+      - veiculos
+    get:
+      parameters:
+      - description: ID do veículo
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_techchalleng_oficina_internal_application_dto.VeiculoResponse'
+      security:
+      - BearerAuth: []
+      summary: Buscar veículo por ID
+      tags:
+      - veiculos
+securityDefinitions:
+  BearerAuth:
+    description: 'Insira o token JWT no formato: Bearer {token}'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
