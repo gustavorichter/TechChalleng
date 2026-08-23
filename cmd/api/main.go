@@ -26,6 +26,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -75,10 +76,7 @@ func main() {
 	handlers := handler.NewHandlers(authUC, clienteUC, veiculoUC, servicoUC, pecaUC, osUC)
 	handler.RegisterRoutes(r, handlers, authUC)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
+	port := sanitizePort(os.Getenv("PORT"))
 
 	srv := &http.Server{
 		Addr:              ":" + port,
@@ -106,4 +104,24 @@ func main() {
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		log.Fatalf("Erro ao encerrar servidor: %v", err)
 	}
+}
+
+func sanitizePort(raw string) string {
+	clean := strings.TrimSpace(raw)
+	if clean == "" {
+		return "8080"
+	}
+
+	var b strings.Builder
+	for _, r := range clean {
+		if r >= '0' && r <= '9' {
+			b.WriteRune(r)
+		}
+	}
+
+	port := b.String()
+	if port == "" {
+		return "8080"
+	}
+	return port
 }
