@@ -1,0 +1,120 @@
+﻿=== Symbol Results ===
+
+Vulnerability #1: GO-2026-6091
+    Fix Javascript regexp context tracking in html/template
+  More info: https://pkg.go.dev/vuln/GO-2026-6091
+  Standard library
+    Found in: html/template@go1.26.2
+    Fixed in: html/template@go1.26.6
+    Example traces found:
+      #1: cmd/api/main.go:94:31: api.main calls http.Server.ListenAndServe, which eventually calls template.Template.Execute
+
+Vulnerability #2: GO-2026-6090
+    Limit handshake messages we are willing to accept post-handshake in
+    crypto/tls
+  More info: https://pkg.go.dev/vuln/GO-2026-6090
+  Standard library
+    Found in: crypto/tls@go1.26.2
+    Fixed in: crypto/tls@go1.26.6
+    Example traces found:
+      #1: cmd/api/main.go:94:31: api.main calls http.Server.ListenAndServe, which eventually calls tls.Conn.HandshakeContext
+      #2: internal/application/usecase/crud_usecases.go:99:42: usecase.HashPassword calls bcrypt.GenerateFromPassword, which eventually calls tls.Conn.Read
+      #3: internal/infra/http/handler/handlers.go:330:67: handler.PecaHandler.Criar calls binding.SliceValidationError.Error, which eventually calls tls.Conn.Write
+
+Vulnerability #3: GO-2026-6089
+    Apply ReadHeaderTimeout when doing unencrypted HTTP/2 check in net/http
+  More info: https://pkg.go.dev/vuln/GO-2026-6089
+  Standard library
+    Found in: net/http@go1.26.2
+    Fixed in: net/http@go1.26.6
+    Example traces found:
+      #1: cmd/api/main.go:94:31: api.main calls http.Server.ListenAndServe
+
+Vulnerability #4: GO-2026-6088
+    Add recursion depth guard during decode in encoding/xml
+  More info: https://pkg.go.dev/vuln/GO-2026-6088
+  Standard library
+    Found in: encoding/xml@go1.26.2
+    Fixed in: encoding/xml@go1.26.6
+    Example traces found:
+      #1: internal/infra/http/handler/handlers.go:329:28: handler.PecaHandler.Criar calls gin.Context.ShouldBindJSON, which eventually calls xml.Decoder.RawToken
+      #2: internal/infra/db/repositories.go:348:22: db.PecaRepo.Listar calls pgxpool.poolRows.Scan, which eventually calls xml.Unmarshal
+
+Vulnerability #5: GO-2026-5972
+    Enforce maximum recursion depth in encoding/asn1
+  More info: https://pkg.go.dev/vuln/GO-2026-5972
+  Standard library
+    Found in: encoding/asn1@go1.26.2
+    Fixed in: encoding/asn1@go1.26.6
+    Example traces found:
+      #1: internal/infra/db/postgres.go:59:14: db.NewPool calls pgxpool.Pool.Close, which eventually calls asn1.Unmarshal
+
+Vulnerability #6: GO-2026-5856
+    Invoking Encrypted Client Hello privacy leak in crypto/tls
+  More info: https://pkg.go.dev/vuln/GO-2026-5856
+  Standard library
+    Found in: crypto/tls@go1.26.2
+    Fixed in: crypto/tls@go1.26.5
+    Example traces found:
+      #1: cmd/api/main.go:94:31: api.main calls http.Server.ListenAndServe, which eventually calls tls.Conn.HandshakeContext
+      #2: internal/application/usecase/crud_usecases.go:99:42: usecase.HashPassword calls bcrypt.GenerateFromPassword, which eventually calls tls.Conn.Read
+      #3: internal/infra/http/handler/handlers.go:330:67: handler.PecaHandler.Criar calls binding.SliceValidationError.Error, which eventually calls tls.Conn.Write
+
+Vulnerability #7: GO-2026-5039
+    Arbitrary inputs are included in errors without any escaping in
+    net/textproto
+  More info: https://pkg.go.dev/vuln/GO-2026-5039
+  Standard library
+    Found in: net/textproto@go1.26.2
+    Fixed in: net/textproto@go1.26.4
+    Example traces found:
+      #1: cmd/api/main.go:94:31: api.main calls http.Server.ListenAndServe, which eventually calls textproto.Reader.ReadMIMEHeader
+
+Vulnerability #8: GO-2026-5037
+    Inefficient candidate hostname parsing in crypto/x509
+  More info: https://pkg.go.dev/vuln/GO-2026-5037
+  Standard library
+    Found in: crypto/x509@go1.26.2
+    Fixed in: crypto/x509@go1.26.4
+    Example traces found:
+      #1: cmd/api/main.go:94:31: api.main calls http.Server.ListenAndServe, which eventually calls x509.Certificate.Verify
+      #2: cmd/api/main.go:94:31: api.main calls http.Server.ListenAndServe, which eventually calls x509.Certificate.VerifyHostname
+      #3: internal/infra/http/handler/handlers.go:391:65: handler.PecaHandler.Excluir calls x509.HostnameError.Error
+
+Vulnerability #9: GO-2026-4982
+    Bypass of meta content URL escaping causes XSS in html/template
+  More info: https://pkg.go.dev/vuln/GO-2026-4982
+  Standard library
+    Found in: html/template@go1.26.2
+    Fixed in: html/template@go1.26.3
+    Example traces found:
+      #1: cmd/api/main.go:94:31: api.main calls http.Server.ListenAndServe, which eventually calls template.Template.Execute
+
+Vulnerability #10: GO-2026-4980
+    Escaper bypass leads to XSS in html/template
+  More info: https://pkg.go.dev/vuln/GO-2026-4980
+  Standard library
+    Found in: html/template@go1.26.2
+    Fixed in: html/template@go1.26.3
+    Example traces found:
+      #1: cmd/api/main.go:94:31: api.main calls http.Server.ListenAndServe, which eventually calls template.Template.Execute
+
+Vulnerability #11: GO-2026-4971
+    Panic in Dial and LookupPort when handling NUL byte on Windows in net
+  More info: https://pkg.go.dev/vuln/GO-2026-4971
+  Standard library
+    Found in: net@go1.26.2
+    Fixed in: net@go1.26.3
+    Example traces found:
+      #1: internal/infra/db/repositories.go:338:27: db.PecaRepo.Listar calls pgxpool.Pool.Query, which eventually calls net.Dialer.DialContext
+      #2: cmd/api/main.go:94:31: api.main calls http.Server.ListenAndServe, which calls net.Listen
+      #3: internal/infra/http/handler/handlers.go:329:28: handler.PecaHandler.Criar calls gin.Context.ShouldBindJSON, which eventually calls net.ResolveIPAddr
+      #4: internal/infra/http/handler/handlers.go:329:28: handler.PecaHandler.Criar calls gin.Context.ShouldBindJSON, which eventually calls net.ResolveTCPAddr
+      #5: internal/infra/http/handler/handlers.go:329:28: handler.PecaHandler.Criar calls gin.Context.ShouldBindJSON, which eventually calls net.ResolveUDPAddr
+      #6: internal/infra/db/postgres.go:54:26: db.NewPool calls pgxpool.New, which eventually calls net.Resolver.LookupHost
+
+Your code is affected by 11 vulnerabilities from the Go standard library.
+This scan also found 8 vulnerabilities in packages you import and 3
+vulnerabilities in modules you require, but your code doesn't appear to call
+these vulnerabilities.
+Use '-show verbose' for more details.

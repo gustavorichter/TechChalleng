@@ -39,6 +39,7 @@ func NewHandlers(
 // RegisterRoutes configura todas as rotas da API.
 func RegisterRoutes(r *gin.Engine, h *Handlers, authUC *usecase.AuthUseCase) {
 	r.Use(middleware.Logger())
+	r.Use(middleware.InjectionGuard())
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})

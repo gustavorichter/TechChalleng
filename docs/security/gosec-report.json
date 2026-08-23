@@ -1,0 +1,124 @@
+{
+	"Golang errors": {},
+	"Issues": [
+		{
+			"severity": "HIGH",
+			"confidence": "MEDIUM",
+			"cwe": {
+				"id": "190",
+				"url": "https://cwe.mitre.org/data/definitions/190.html"
+			},
+			"rule_id": "G115",
+			"details": "integer overflow conversion int -\u003e rune",
+			"file": "C:\\Users\\Gamer\\Documents\\GitHub\\TechChalleng\\pkg\\validator\\validator.go",
+			"code": "55: \td1 := calcCNPJDigit(cnpj[:12], weights1)\n56: \td2 := calcCNPJDigit(cnpj[:12]+string(rune('0'+d1)), weights2)\n57: \treturn cnpj[12] == byte('0'+d1) \u0026\u0026 cnpj[13] == byte('0'+d2)\n",
+			"line": "56",
+			"column": "43",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "MEDIUM",
+			"cwe": {
+				"id": "190",
+				"url": "https://cwe.mitre.org/data/definitions/190.html"
+			},
+			"rule_id": "G115",
+			"details": "integer overflow conversion int -\u003e rune",
+			"file": "C:\\Users\\Gamer\\Documents\\GitHub\\TechChalleng\\pkg\\validator\\validator.go",
+			"code": "24: \td1 := calcCPFDigit(cpf[:9], 10)\n25: \td2 := calcCPFDigit(cpf[:9]+string(rune('0'+d1)), 11)\n26: \treturn cpf[9] == byte('0'+d1) \u0026\u0026 cpf[10] == byte('0'+d2)\n",
+			"line": "25",
+			"column": "40",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "MEDIUM",
+			"cwe": {
+				"id": "190",
+				"url": "https://cwe.mitre.org/data/definitions/190.html"
+			},
+			"rule_id": "G115",
+			"details": "integer overflow conversion int -\u003e byte",
+			"file": "C:\\Users\\Gamer\\Documents\\GitHub\\TechChalleng\\pkg\\validator\\validator.go",
+			"code": "56: \td2 := calcCNPJDigit(cnpj[:12]+string(rune('0'+d1)), weights2)\n57: \treturn cnpj[12] == byte('0'+d1) \u0026\u0026 cnpj[13] == byte('0'+d2)\n58: }\n",
+			"line": "57",
+			"column": "25",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "MEDIUM",
+			"cwe": {
+				"id": "190",
+				"url": "https://cwe.mitre.org/data/definitions/190.html"
+			},
+			"rule_id": "G115",
+			"details": "integer overflow conversion int -\u003e byte",
+			"file": "C:\\Users\\Gamer\\Documents\\GitHub\\TechChalleng\\pkg\\validator\\validator.go",
+			"code": "56: \td2 := calcCNPJDigit(cnpj[:12]+string(rune('0'+d1)), weights2)\n57: \treturn cnpj[12] == byte('0'+d1) \u0026\u0026 cnpj[13] == byte('0'+d2)\n58: }\n",
+			"line": "57",
+			"column": "53",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "MEDIUM",
+			"cwe": {
+				"id": "190",
+				"url": "https://cwe.mitre.org/data/definitions/190.html"
+			},
+			"rule_id": "G115",
+			"details": "integer overflow conversion int -\u003e byte",
+			"file": "C:\\Users\\Gamer\\Documents\\GitHub\\TechChalleng\\pkg\\validator\\validator.go",
+			"code": "25: \td2 := calcCPFDigit(cpf[:9]+string(rune('0'+d1)), 11)\n26: \treturn cpf[9] == byte('0'+d1) \u0026\u0026 cpf[10] == byte('0'+d2)\n27: }\n",
+			"line": "26",
+			"column": "23",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "MEDIUM",
+			"cwe": {
+				"id": "190",
+				"url": "https://cwe.mitre.org/data/definitions/190.html"
+			},
+			"rule_id": "G115",
+			"details": "integer overflow conversion int -\u003e byte",
+			"file": "C:\\Users\\Gamer\\Documents\\GitHub\\TechChalleng\\pkg\\validator\\validator.go",
+			"code": "25: \td2 := calcCPFDigit(cpf[:9]+string(rune('0'+d1)), 11)\n26: \treturn cpf[9] == byte('0'+d1) \u0026\u0026 cpf[10] == byte('0'+d2)\n27: }\n",
+			"line": "26",
+			"column": "50",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "LOW",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "117",
+				"url": "https://cwe.mitre.org/data/definitions/117.html"
+			},
+			"rule_id": "G706",
+			"details": "Log injection via taint analysis",
+			"file": "C:\\Users\\Gamer\\Documents\\GitHub\\TechChalleng\\cmd\\api\\main.go",
+			"code": "92: \tgo func() {\n93: \t\tlog.Printf(\"Servidor iniciado na porta %s\", port)\n94: \t\tif err := srv.ListenAndServe(); err != nil \u0026\u0026 err != http.ErrServerClosed {\n",
+			"line": "93",
+			"column": "13",
+			"nosec": false,
+			"suppressions": null
+		}
+	],
+	"Stats": {
+		"files": 25,
+		"lines": 4449,
+		"nosec": 0,
+		"found": 7
+	},
+	"GosecVersion": "dev"
+}

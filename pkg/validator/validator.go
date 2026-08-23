@@ -85,6 +85,23 @@ func FormatPlaca(placa string) string {
 	return strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(placa), "-", ""))
 }
 
+// SanitizeDocumento remove caracteres não numéricos de CPF/CNPJ antes da validação.
+func SanitizeDocumento(doc string) string {
+	return sanitizeDigits(doc)
+}
+
+// SanitizePlaca normaliza e remove caracteres inválidos de placas veiculares.
+func SanitizePlaca(placa string) string {
+	placa = strings.ToUpper(strings.TrimSpace(placa))
+	var b strings.Builder
+	for _, c := range placa {
+		if (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' {
+			b.WriteRune(c)
+		}
+	}
+	return b.String()
+}
+
 func sanitizeDigits(s string) string {
 	var b strings.Builder
 	for _, c := range s {
