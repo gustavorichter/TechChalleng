@@ -1,5 +1,7 @@
 # Sistema Integrado de Atendimento e Execução de Serviços — Oficina Mecânica
 
+[![CI](https://github.com/gustavorichter/TechChalleng/actions/workflows/ci.yml/badge.svg)](https://github.com/gustavorichter/TechChalleng/actions/workflows/ci.yml)
+
 MVP do back-end monolítico para gestão completa de ordens de serviço (OS) em uma oficina mecânica. O sistema cobre cadastro de clientes, veículos, serviços e estoque de peças, além do ciclo de vida completo da OS com orçamento automático, controle de estoque e acompanhamento público de status.
 
 ## Objetivos do Projeto
@@ -43,9 +45,38 @@ pkg/validator/    → Validadores reutilizáveis (CPF, CNPJ, Placa)
 - **Swagger (swaggo)** — documentação interativa
 - **Docker** — containerização multi-stage
 
+## CI/CD Pipeline
+
+O projeto inclui um pipeline de integração contínua configurado em GitHub Actions para garantir qualidade e estabilidade antes da entrega.
+
+Arquivo do workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+
+### O que o pipeline valida
+
+- **Lint** com `golangci-lint`
+- **Testes automatizados** com `go test ./... -cover`
+- **Verificação de segurança** com `gosec` e `govulncheck`
+- **Build de containers Docker** com `docker compose build`
+- **Smoke test da aplicação** levantando a stack e validando o endpoint de health check
+
+### Fluxo executado pelo workflow
+
+1. Checkout do código
+2. Setup do ambiente Go
+3. Download das dependências
+4. Execução do lint
+5. Execução dos testes com cobertura
+6. Execução de varreduras de segurança
+7. Build dos serviços Docker
+8. Subida dos containers em ambiente limpo
+9. Validação do endpoint `/health`
+10. Encerramento da stack com `docker compose down -v`
+
+Esse processo reduz o risco de regressões e garante que o projeto possa ser executado em um ambiente novo sem depender do ambiente local do desenvolvedor.
+
 ## Pré-requisitos
 
-- [Docker Desktop](https://docs.docker.com/get-docker/) instalado e **em execução**
+- [Docker Desktop](https://docs.docker.comgit@github.com:gustavorichter/TechChalleng.git/get-docker/) instalado e **em execução**
 - Docker Compose v2+
 
 ## Como rodar com Docker
