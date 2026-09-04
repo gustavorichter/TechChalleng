@@ -22,8 +22,8 @@ func ValidateCPF(cpf string) bool {
 	}
 
 	d1 := calcCPFDigit(cpf[:9], 10)
-	d2 := calcCPFDigit(cpf[:9]+string(rune('0'+d1)), 11)
-	return cpf[9] == byte('0'+d1) && cpf[10] == byte('0'+d2)
+	d2 := calcCPFDigit(cpf[:9]+strconv.Itoa(d1), 11)
+	return string(cpf[9]) == strconv.Itoa(d1) && string(cpf[10]) == strconv.Itoa(d2)
 }
 
 func calcCPFDigit(num string, weightStart int) int {
@@ -53,8 +53,8 @@ func ValidateCNPJ(cnpj string) bool {
 	weights2 := []int{6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2}
 
 	d1 := calcCNPJDigit(cnpj[:12], weights1)
-	d2 := calcCNPJDigit(cnpj[:12]+string(rune('0'+d1)), weights2)
-	return cnpj[12] == byte('0'+d1) && cnpj[13] == byte('0'+d2)
+	d2 := calcCNPJDigit(cnpj[:12]+strconv.Itoa(d1), weights2)
+	return string(cnpj[12]) == strconv.Itoa(d1) && string(cnpj[13]) == strconv.Itoa(d2)
 }
 
 func calcCNPJDigit(num string, weights []int) int {

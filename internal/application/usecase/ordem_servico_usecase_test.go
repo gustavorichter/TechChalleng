@@ -95,9 +95,9 @@ func (m *mockVeiculoRepo) BuscarPorID(ctx context.Context, id uuid.UUID) (*entit
 func (m *mockVeiculoRepo) ListarPorCliente(ctx context.Context, id uuid.UUID) ([]*entity.Veiculo, error) {
 	return nil, nil
 }
-func (m *mockVeiculoRepo) Listar(ctx context.Context) ([]*entity.Veiculo, error) { return nil, nil }
+func (m *mockVeiculoRepo) Listar(ctx context.Context) ([]*entity.Veiculo, error)  { return nil, nil }
 func (m *mockVeiculoRepo) Atualizar(ctx context.Context, v *entity.Veiculo) error { return nil }
-func (m *mockVeiculoRepo) Excluir(ctx context.Context, id uuid.UUID) error         { return nil }
+func (m *mockVeiculoRepo) Excluir(ctx context.Context, id uuid.UUID) error        { return nil }
 
 type mockServicoRepo struct {
 	servicos map[uuid.UUID]*entity.Servico
@@ -118,9 +118,9 @@ func (m *mockServicoRepo) BuscarPorID(ctx context.Context, id uuid.UUID) (*entit
 	}
 	return s, nil
 }
-func (m *mockServicoRepo) Listar(ctx context.Context) ([]*entity.Servico, error) { return nil, nil }
+func (m *mockServicoRepo) Listar(ctx context.Context) ([]*entity.Servico, error)  { return nil, nil }
 func (m *mockServicoRepo) Atualizar(ctx context.Context, s *entity.Servico) error { return nil }
-func (m *mockServicoRepo) Excluir(ctx context.Context, id uuid.UUID) error         { return nil }
+func (m *mockServicoRepo) Excluir(ctx context.Context, id uuid.UUID) error        { return nil }
 
 type mockPecaRepoUC struct {
 	pecas map[uuid.UUID]*entity.Peca
@@ -216,7 +216,7 @@ func TestOrdemServicoUseCase_AdicionarServico_RecalculaOrcamento(t *testing.T) {
 }
 
 func TestOrdemServicoUseCase_Finalizar_BaixaEstoque(t *testing.T) {
-	uc, clienteID, veiculoID, servicoID := setupOrdemServicoUC()
+	_, clienteID, veiculoID, servicoID := setupOrdemServicoUC()
 	pecaRepo := newMockPecaRepoUC()
 	peca := entity.NewPeca("Filtro", "FLT001", decimal.NewFromFloat(45), 10)
 	pecaRepo.pecas[peca.ID] = peca
@@ -229,7 +229,7 @@ func TestOrdemServicoUseCase_Finalizar_BaixaEstoque(t *testing.T) {
 	servicoRepo.servicos[servicoID] = entity.NewServico("Troca", "desc", decimal.NewFromFloat(100))
 	osRepo := newMockOSRepo()
 
-	uc = NewOrdemServicoUseCase(osRepo, clienteRepo, veiculoRepo, servicoRepo, pecaRepo)
+	uc := NewOrdemServicoUseCase(osRepo, clienteRepo, veiculoRepo, servicoRepo, pecaRepo)
 
 	created, err := uc.Criar(context.Background(), dto.CriarOSRequest{ClienteID: clienteID, VeiculoID: veiculoID})
 	require.NoError(t, err)

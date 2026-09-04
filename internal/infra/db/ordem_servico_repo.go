@@ -25,7 +25,7 @@ func (r *OrdemServicoRepo) Criar(ctx context.Context, os *entity.OrdemServico) e
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	_, err = tx.Exec(ctx, `
 		INSERT INTO ordens_servico (id, cliente_id, veiculo_id, status, valor_total, observacoes, criado_em, entregue_em, atualizado_em)
@@ -92,7 +92,7 @@ func (r *OrdemServicoRepo) Atualizar(ctx context.Context, os *entity.OrdemServic
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	_, err = tx.Exec(ctx, `
 		UPDATE ordens_servico SET status=$2, valor_total=$3, observacoes=$4, entregue_em=$5, atualizado_em=$6

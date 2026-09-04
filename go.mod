@@ -1,6 +1,6 @@
 module github.com/techchalleng/oficina
 
-go 1.26
+go 1.26.6
 
 require (
 	github.com/gin-gonic/gin v1.10.0
