@@ -2,6 +2,25 @@
 
 MVP do back-end monolítico para gestão completa de ordens de serviço (OS) em uma oficina mecânica. O sistema cobre cadastro de clientes, veículos, serviços e estoque de peças, além do ciclo de vida completo da OS com orçamento automático, controle de estoque e acompanhamento público de status.
 
+## Tech Challenge — Fase 1
+
+**Grupo 21**
+
+| Integrante | Contato |
+|------------|---------|
+| Gustavo André Richter | gustavo.richter@bling.com.br |
+| Guilherme Montipó Nodari | guinodari@hotmail.com |
+| Diego Poleto | diegopoleto10@gmail.com |
+
+### Entregáveis
+
+| Entregável | Link |
+|------------|------|
+| Vídeo da apresentação | [Google Drive](https://drive.google.com/file/d/1DIrIJzwhTTDOoqtOU-DmangmCeSFKukc/view?usp=sharing) |
+| Documentação DDD (Miro) | [Board Miro](https://miro.com/welcomeonboard/bmZ0RDZva2xEaHZ0STFGVlQrWFhtcXlnMnRBYklUN0tkcWM3ajJ3cGkzd3BDY3B6TGJ3dTR0UkNSYWJBQ0VZZ2tTMElJZ1h3NVNUNUpybmU2cmFURG13emcrQmswRHVxemtESmhSMHZqVGN1bkMzTE1SSmo4U0p6d1E4ZExnYVpBd044SHFHaVlWYWk0d3NxeHNmeG9BPT0hdjE=?share_link_id=382550460994) |
+| Código-fonte | [GitHub](https://github.com/gustavorichter/TechChalleng) |
+| Relatório de vulnerabilidades | [Google Drive](https://drive.google.com/file/d/1lLypdttNCF8Rw-6RwmpV7TVulzg_0uaa/view?usp=sharing) |
+
 ## Objetivos do Projeto
 
 - **Centralizar o atendimento**: unificar cliente, veículo, serviços e peças em uma única Ordem de Serviço (Aggregate Root).
