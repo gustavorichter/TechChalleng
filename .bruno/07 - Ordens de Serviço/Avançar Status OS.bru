@@ -1,7 +1,7 @@
 meta {
   name: Avançar Status OS
   type: http
-  seq: 7
+  seq: 9
 }
 
 post {
@@ -15,5 +15,8 @@ auth:bearer {
 }
 
 docs {
-  Avança automaticamente para o próximo status na sequência da máquina de estados.
+  Avança um passo, exceto quando a OS está em "Aguardando aprovação".
+  Nesse status a API responde 400 e exige POST /ordens-servico/{{osId}}/orcamento.
+  Depois da aprovação, este avanço vai para "Finalizada", baixa o estoque
+  e oculta a OS da listagem.
 }

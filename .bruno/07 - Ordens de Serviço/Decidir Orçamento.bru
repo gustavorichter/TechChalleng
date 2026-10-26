@@ -23,3 +23,16 @@ body:json {
     "aprovado": true
   }
 }
+
+docs {
+  POST /api/v1/ordens-servico/{{osId}}/orcamento
+  Auth: Bearer. A OS precisa estar em "Aguardando aprovação" e ter serviço ou peça.
+
+  Aprovar (segue para "Em execução"):
+  { "aprovado": true }
+
+  Recusar (volta para "Em diagnóstico"; motivo obrigatório):
+  { "aprovado": false, "motivo": "Valor acima do combinado" }
+
+  Fora desse status a API responde 400. "Avançar Status" não aprova o orçamento.
+}

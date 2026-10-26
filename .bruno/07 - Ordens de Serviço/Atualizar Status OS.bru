@@ -25,8 +25,7 @@ body:json {
 }
 
 docs {
-  Sequência válida:
-  Recebida → Em diagnóstico → Aguardando aprovação → Em execução → Finalizada → Entregue
-  
-  Ao atingir "Finalizada", o estoque é baixado automaticamente.
+  Este exemplo faz só a primeira transição: Recebida → Em diagnóstico.
+  Em seguida use "Enviar para Aprovação". A saída de "Aguardando aprovação"
+  não passa por este endpoint: aprove ou recuse em "Decidir Orçamento".
 }
