@@ -1,6 +1,6 @@
 # Sistema Integrado de Atendimento e Execução de Serviços — Oficina Mecânica
 
-[![CI](https://github.com/gustavorichter/TechChalleng/actions/workflows/ci.yml/badge.svg)](https://github.com/gustavorichter/TechChalleng/actions/workflows/ci.yml)
+[![CI/CD](https://github.com/gustavorichter/TechChalleng/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/gustavorichter/TechChalleng/actions/workflows/ci-cd.yml)
 
 MVP do back-end monolítico para gestão completa de ordens de serviço (OS) em uma oficina mecânica. O sistema cobre cadastro de clientes, veículos, serviços e estoque de peças, além do ciclo de vida completo da OS com orçamento automático, controle de estoque e acompanhamento público de status.
 
@@ -70,28 +70,25 @@ As portas de persistência e de notificação ficam na aplicação. O domínio n
 
 O projeto inclui um pipeline de integração contínua configurado em GitHub Actions para garantir qualidade e estabilidade antes da entrega.
 
-Arquivo do workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+Arquivo do workflow: [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml)
+
+Dispara em `push` e `pull_request` nas branches `main` e `master`.
 
 ### O que o pipeline valida
 
 - **Lint** com `golangci-lint`
-- **Testes automatizados** com `go test ./... -cover`
 - **Verificação de segurança** com `gosec` e `govulncheck`
-- **Build de containers Docker** com `docker compose build`
-- **Smoke test da aplicação** levantando a stack e validando o endpoint de health check
+- **Compilação** com `go build` e testes unitários e de integração (`go test`)
+- **Build da imagem Docker**, checagem de usuário, entrypoint e porta, e smoke test do `/health`
+- **Terraform** em `infra/`: `init`, `validate` e `plan` contra um cluster kind
+- **Manifestos Kubernetes** em `k8s/` com `kubectl apply --dry-run=client`
 
 ### Fluxo executado pelo workflow
 
-1. Checkout do código
-2. Setup do ambiente Go
-3. Download das dependências
-4. Execução do lint
-5. Execução dos testes com cobertura
-6. Execução de varreduras de segurança
-7. Build dos serviços Docker
-8. Subida dos containers em ambiente limpo
-9. Validação do endpoint `/health`
-10. Encerramento da stack com `docker compose down -v`
+1. Em paralelo: lint, varredura de segurança, compilação e testes
+2. Com esses três verdes: build da imagem, validação da configuração e smoke test da stack
+3. Em paralelo com o restante: `terraform init`, `validate` e `plan`
+4. Em paralelo com o restante: validação sintática dos manifestos em `k8s/`
 
 Esse processo reduz o risco de regressões e garante que o projeto possa ser executado em um ambiente novo sem depender do ambiente local do desenvolvedor.
 
