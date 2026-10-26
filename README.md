@@ -33,22 +33,24 @@ MVP do back-end monolítico para gestão completa de ordens de serviço (OS) em 
 
 ## Arquitetura
 
-O projeto segue **Domain-Driven Design (DDD)** com **Arquitetura em Camadas**:
+O projeto segue **Clean Architecture / Arquitetura Hexagonal** com **Domain-Driven Design**:
 
 ```
-cmd/api/          → Ponto de entrada (main.go)
+cmd/api/          → Composição (wiring) dos adaptadores e casos de uso
 internal/
-  domain/         → Entidades, Value Objects, regras de negócio e contratos de repositório
-  application/    → Casos de uso (orquestração) e DTOs
-  infra/          → Implementações concretas (PostgreSQL, HTTP/Gin, JWT)
+  domain/         → Entidades, objetos de valor e regras de negócio
+  application/    → Casos de uso, DTOs e portas (interfaces)
+  infra/          → Adaptadores: PostgreSQL, HTTP/Gin e notificação simulada
 pkg/validator/    → Validadores reutilizáveis (CPF, CNPJ, Placa)
 ```
+
+As portas de persistência e de notificação ficam na aplicação. O domínio não importa banco, HTTP nem e-mail. A infraestrutura implementa essas portas.
 
 ### Justificativa DDD + PostgreSQL
 
 | Decisão | Justificativa |
 |---------|---------------|
-| **DDD em camadas** | Isola regras de negócio (domínio) de detalhes de infraestrutura, facilitando testes e evolução do monolito. |
+| **Hexagonal / Clean Architecture** | O domínio guarda as regras; a aplicação orquestra os casos de uso pelas portas; PostgreSQL, HTTP e e-mail simulado são adaptadores substituíveis. |
 | **Aggregate Root (OrdemServico)** | Garante consistência transacional do ciclo de vida da OS, orçamento e estoque. |
 | **Value Objects (CPF, Placa, StatusOS)** | Encapsulam validação e comportamento imutável, evitando estados inválidos. |
 | **PostgreSQL** | Banco relacional ACID com suporte nativo a transações, essencial para baixa de estoque e persistência consistente de OS com itens. O `pgx` (driver oficial) oferece performance e type-safety. |
@@ -271,7 +273,7 @@ curl -X POST http://localhost:8081/api/v1/pecas \
 curl -X POST http://localhost:8081/api/v1/ordens-servico \
   -H "Authorization: Bearer <TOKEN>" \
   -H "Content-Type: application/json" \
-  -d "{\"cliente_id\":\"<CLIENTE_ID>\",\"veiculo_id\":\"<VEICULO_ID>\",\"observacoes\":\"Barulho no motor\"}"
+  -d "{\"cliente_id\":\"<CLIENTE_ID>\",\"veiculo_id\":\"<VEICULO_ID>\",\"observacoes\":\"Barulho no motor\",\"servicos\":[{\"servico_id\":\"<SERVICO_ID>\"}],\"pecas\":[{\"peca_id\":\"<PECA_ID>\",\"quantidade\":2}]}"
 ```
 
 ### 7. Adicionar serviço à OS (recalcula orçamento)
@@ -316,7 +318,25 @@ Sequência válida:
 Recebida → Em diagnóstico → Aguardando aprovação → Em execução → Finalizada → Entregue
 ```
 
-> Ao atingir **Finalizada**, o estoque das peças vinculadas é baixado automaticamente.
+A saída de **Aguardando aprovação** não usa o avanço genérico. Ela passa pela decisão de orçamento:
+
+```bash
+# Aprovar: segue para "Em execução"
+curl -X POST http://localhost:8081/api/v1/ordens-servico/<OS_ID>/orcamento \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d "{\"aprovado\":true}"
+
+# Recusar: volta para "Em diagnóstico" e exige motivo
+curl -X POST http://localhost:8081/api/v1/ordens-servico/<OS_ID>/orcamento \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d "{\"aprovado\":false,\"motivo\":\"Valor acima do combinado\"}"
+```
+
+> Ao atingir **Finalizada**, o estoque das peças vinculadas é baixado automaticamente e a OS recebe exclusão lógica (`excluida_em`).
+>
+> Cada mudança de status dispara o adaptador simulado de e-mail ao cliente.
 
 ### 10. Consulta pública de status (sem autenticação)
 
@@ -387,11 +407,13 @@ Invoke-RestMethod -Uri "http://localhost:8081/api/v1/ordens-servico/<OS_ID>/stat
 | POST | `/api/v1/veiculos` | JWT | Criar veículo |
 | POST | `/api/v1/servicos` | JWT | Criar serviço |
 | POST | `/api/v1/pecas` | JWT | Criar peça/insumo |
-| POST | `/api/v1/ordens-servico` | JWT | Criar OS |
+| POST | `/api/v1/ordens-servico` | JWT | Abrir OS com cliente, veículo, serviços e peças |
+| GET | `/api/v1/ordens-servico` | JWT | Listar OS ativas na ordem operacional |
 | POST | `/api/v1/ordens-servico/{id}/servicos` | JWT | Adicionar serviço à OS |
 | POST | `/api/v1/ordens-servico/{id}/pecas` | JWT | Adicionar peça à OS |
 | PUT | `/api/v1/ordens-servico/{id}/status` | JWT | Atualizar status |
 | POST | `/api/v1/ordens-servico/{id}/avancar` | JWT | Avançar para próximo status |
+| POST | `/api/v1/ordens-servico/{id}/orcamento` | JWT | Aprovar ou recusar o orçamento |
 | GET | `/api/v1/ordens-servico/metricas/tempo-medio` | JWT | Tempo médio de execução |
 | GET | `/swagger/index.html` | Não | Documentação Swagger |
 
@@ -402,8 +424,10 @@ Recebida → Em diagnóstico → Aguardando aprovação → Em execução → Fi
 ```
 
 - Transições inválidas são rejeitadas pela máquina de estados no domínio.
-- Ao atingir **Finalizada**, o estoque é baixado automaticamente.
-- Ao atingir **Entregue**, `entregue_em` é registrado para métricas.
+- **Aguardando aprovação** só segue para **Em execução** pela aprovação explícita do orçamento. A recusa devolve a OS ao diagnóstico.
+- Ao atingir **Finalizada**, o estoque é baixado e a OS sai da listagem por exclusão lógica. **Entregue** também fica oculta.
+- A listagem ativa ordena por `Em execução`, `Aguardando aprovação`, `Em diagnóstico` e `Recebida`. No mesmo status, a OS mais antiga aparece primeiro.
+- Ao atingir **Entregue**, `entregue_em` é registrado para métricas. A consulta por ID e a consulta pública de status continuam disponíveis.
 
 ## Desenvolvimento Local (sem Docker)
 
@@ -428,8 +452,11 @@ go run ./cmd/api
 Os testes cobrem fluxos críticos:
 
 - Cálculo automático de orçamento (`CalculadoraOrcamento`)
-- Transições inválidas de status (`StatusOS`, `OrdemServico`)
+- Transições inválidas de status, aprovação, recusa e exclusão lógica (`StatusOS`, `OrdemServico`)
+- Ordenação da fila operacional
 - Verificação e baixa de estoque (`GestorEstoque`, `Peca`)
+- Abertura com serviços e peças, decisão de orçamento e notificação (`OrdemServicoUseCase`)
+- Fluxo HTTP do ciclo de vida da OS
 - Validadores de CPF, CNPJ e Placa
 
 ```bash

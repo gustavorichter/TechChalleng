@@ -1,0 +1,25 @@
+meta {
+  name: Decidir Orçamento
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/api/v1/ordens-servico/{{osId}}/orcamento
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "aprovado": true
+  }
+}

@@ -47,3 +47,12 @@ func TestNewStatusOS_Invalido(t *testing.T) {
 	_, err := NewStatusOS("Status Inexistente")
 	assert.Error(t, err)
 }
+
+func TestStatusOS_PrioridadeListagem(t *testing.T) {
+	assert.Less(t, StatusEmExecucao.PrioridadeListagem(), StatusAguardandoAprovacao.PrioridadeListagem())
+	assert.Less(t, StatusAguardandoAprovacao.PrioridadeListagem(), StatusEmDiagnostico.PrioridadeListagem())
+	assert.Less(t, StatusEmDiagnostico.PrioridadeListagem(), StatusRecebida.PrioridadeListagem())
+	assert.True(t, StatusFinalizada.OcultaDaListagem())
+	assert.True(t, StatusEntregue.OcultaDaListagem())
+	assert.False(t, StatusRecebida.OcultaDaListagem())
+}

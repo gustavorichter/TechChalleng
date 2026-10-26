@@ -19,7 +19,7 @@ func NewOrdemServicoHandler(uc *usecase.OrdemServicoUseCase) *OrdemServicoHandle
 
 // Criar godoc
 // @Summary      Criar ordem de serviço
-// @Description  Cria uma nova OS no status "Recebida"
+// @Description  Abre uma OS no status "Recebida", com serviços e peças opcionais já no orçamento
 // @Tags         ordens-servico
 // @Security     BearerAuth
 // @Accept       json
@@ -63,7 +63,8 @@ func (h *OrdemServicoHandler) Buscar(c *gin.Context) {
 }
 
 // Listar godoc
-// @Summary      Listar ordens de serviço
+// @Summary      Listar ordens de serviço ativas
+// @Description  Ordena por Em execução, Aguardando aprovação, Em diagnóstico e Recebida. Dentro do status, as mais antigas vêm primeiro. Finalizada e Entregue ficam ocultas por exclusão lógica.
 // @Tags         ordens-servico
 // @Security     BearerAuth
 // @Success      200  {array}  dto.OrdemServicoResponse
@@ -159,6 +160,36 @@ func (h *OrdemServicoHandler) AtualizarStatus(c *gin.Context) {
 		return
 	}
 	resp, err := h.uc.AtualizarStatus(c.Request.Context(), id, req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, resp)
+}
+
+// DecidirOrcamento godoc
+// @Summary      Aprovar ou recusar o orçamento
+// @Description  Aprovação inicia a execução. Recusa devolve a OS ao diagnóstico e exige motivo.
+// @Tags         ordens-servico
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                       true  "ID da OS"
+// @Param        body  body  dto.DecidirOrcamentoRequest  true  "Decisão"
+// @Success      200   {object}  dto.OrdemServicoResponse
+// @Router       /ordens-servico/{id}/orcamento [post]
+func (h *OrdemServicoHandler) DecidirOrcamento(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: "ID inválido"})
+		return
+	}
+	var req dto.DecidirOrcamentoRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: err.Error()})
+		return
+	}
+	resp, err := h.uc.DecidirOrcamento(c.Request.Context(), id, req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: err.Error()})
 		return

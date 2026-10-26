@@ -30,13 +30,13 @@ type CriarClienteRequest struct {
 }
 
 type ClienteResponse struct {
-	ID        uuid.UUID `json:"id"`
-	Nome      string    `json:"nome"`
-	CPF       string    `json:"cpf,omitempty"`
-	CNPJ      string    `json:"cnpj,omitempty"`
-	Email     string    `json:"email"`
-	Telefone  string    `json:"telefone"`
-	CriadoEm  time.Time `json:"criado_em"`
+	ID       uuid.UUID `json:"id"`
+	Nome     string    `json:"nome"`
+	CPF      string    `json:"cpf,omitempty"`
+	CNPJ     string    `json:"cnpj,omitempty"`
+	Email    string    `json:"email"`
+	Telefone string    `json:"telefone"`
+	CriadoEm time.Time `json:"criado_em"`
 }
 
 // --- Veículo ---
@@ -96,9 +96,16 @@ type PecaResponse struct {
 // --- Ordem de Serviço ---
 
 type CriarOSRequest struct {
-	ClienteID   uuid.UUID `json:"cliente_id" binding:"required"`
-	VeiculoID   uuid.UUID `json:"veiculo_id" binding:"required"`
-	Observacoes string    `json:"observacoes"`
+	ClienteID   uuid.UUID                   `json:"cliente_id" binding:"required"`
+	VeiculoID   uuid.UUID                   `json:"veiculo_id" binding:"required"`
+	Observacoes string                      `json:"observacoes"`
+	Servicos    []AdicionarServicoOSRequest `json:"servicos"`
+	Pecas       []AdicionarPecaOSRequest    `json:"pecas"`
+}
+
+type DecidirOrcamentoRequest struct {
+	Aprovado bool   `json:"aprovado"`
+	Motivo   string `json:"motivo"`
 }
 
 type AdicionarServicoOSRequest struct {
@@ -128,25 +135,28 @@ type ItemPecaOSResponse struct {
 }
 
 type OrdemServicoResponse struct {
-	ID           uuid.UUID               `json:"id"`
-	ClienteID    uuid.UUID               `json:"cliente_id"`
-	VeiculoID    uuid.UUID               `json:"veiculo_id"`
-	Status       string                  `json:"status"`
-	ValorTotal   decimal.Decimal         `json:"valor_total"`
-	Observacoes  string                  `json:"observacoes"`
-	Servicos     []ItemServicoOSResponse `json:"servicos"`
-	Pecas        []ItemPecaOSResponse    `json:"pecas"`
-	CriadoEm     time.Time               `json:"criado_em"`
-	EntregueEm   *time.Time              `json:"entregue_em,omitempty"`
-	AtualizadoEm time.Time               `json:"atualizado_em"`
+	ID                uuid.UUID               `json:"id"`
+	ClienteID         uuid.UUID               `json:"cliente_id"`
+	VeiculoID         uuid.UUID               `json:"veiculo_id"`
+	Status            string                  `json:"status"`
+	ValorTotal        decimal.Decimal         `json:"valor_total"`
+	Observacoes       string                  `json:"observacoes"`
+	Servicos          []ItemServicoOSResponse `json:"servicos"`
+	Pecas             []ItemPecaOSResponse    `json:"pecas"`
+	OrcamentoAprovado *bool                   `json:"orcamento_aprovado,omitempty"`
+	MotivoRecusa      string                  `json:"motivo_recusa,omitempty"`
+	CriadoEm          time.Time               `json:"criado_em"`
+	EntregueEm        *time.Time              `json:"entregue_em,omitempty"`
+	ExcluidaEm        *time.Time              `json:"excluida_em,omitempty"`
+	AtualizadoEm      time.Time               `json:"atualizado_em"`
 }
 
 type StatusOSResponse struct {
-	ID         uuid.UUID  `json:"id"`
-	Status     string     `json:"status"`
+	ID         uuid.UUID       `json:"id"`
+	Status     string          `json:"status"`
 	ValorTotal decimal.Decimal `json:"valor_total"`
-	CriadoEm   time.Time  `json:"criado_em"`
-	EntregueEm *time.Time `json:"entregue_em,omitempty"`
+	CriadoEm   time.Time       `json:"criado_em"`
+	EntregueEm *time.Time      `json:"entregue_em,omitempty"`
 }
 
 type TempoMedioResponse struct {

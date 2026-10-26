@@ -3,12 +3,14 @@ package usecase
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/techchalleng/oficina/internal/application/dto"
+	"github.com/techchalleng/oficina/internal/application/port"
 	"github.com/techchalleng/oficina/internal/domain/entity"
 	"github.com/techchalleng/oficina/internal/domain/valobj"
 )
@@ -34,7 +36,13 @@ func (m *mockOSRepo) BuscarPorID(ctx context.Context, id uuid.UUID) (*entity.Ord
 	return os, nil
 }
 
-func (m *mockOSRepo) Listar(ctx context.Context) ([]*entity.OrdemServico, error) { return nil, nil }
+func (m *mockOSRepo) Listar(ctx context.Context) ([]*entity.OrdemServico, error) {
+	result := make([]*entity.OrdemServico, 0, len(m.ordens))
+	for _, os := range m.ordens {
+		result = append(result, os)
+	}
+	return result, nil
+}
 func (m *mockOSRepo) Atualizar(ctx context.Context, os *entity.OrdemServico) error {
 	m.ordens[os.ID] = os
 	return nil
@@ -148,7 +156,18 @@ func (m *mockPecaRepoUC) Atualizar(ctx context.Context, p *entity.Peca) error {
 }
 func (m *mockPecaRepoUC) Excluir(ctx context.Context, id uuid.UUID) error { return nil }
 
-func setupOrdemServicoUC() (*OrdemServicoUseCase, uuid.UUID, uuid.UUID, uuid.UUID) {
+type mockNotificador struct {
+	chamadas int
+	ultimo   port.NotificacaoStatus
+}
+
+func (m *mockNotificador) NotificarAtualizacaoStatus(_ context.Context, n port.NotificacaoStatus) error {
+	m.chamadas++
+	m.ultimo = n
+	return nil
+}
+
+func setupOrdemServicoUC() (*OrdemServicoUseCase, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID, *mockNotificador) {
 	clienteID := uuid.New()
 	veiculoID := uuid.New()
 
@@ -167,13 +186,14 @@ func setupOrdemServicoUC() (*OrdemServicoUseCase, uuid.UUID, uuid.UUID, uuid.UUI
 	pecaRepo.pecas[peca.ID] = peca
 
 	osRepo := newMockOSRepo()
-	uc := NewOrdemServicoUseCase(osRepo, clienteRepo, veiculoRepo, servicoRepo, pecaRepo)
+	notificador := &mockNotificador{}
+	uc := NewOrdemServicoUseCase(osRepo, clienteRepo, veiculoRepo, servicoRepo, pecaRepo, notificador)
 
-	return uc, clienteID, veiculoID, servico.ID
+	return uc, clienteID, veiculoID, servico.ID, peca.ID, notificador
 }
 
 func TestOrdemServicoUseCase_Criar(t *testing.T) {
-	uc, clienteID, veiculoID, _ := setupOrdemServicoUC()
+	uc, clienteID, veiculoID, _, _, _ := setupOrdemServicoUC()
 
 	resp, err := uc.Criar(context.Background(), dto.CriarOSRequest{
 		ClienteID: clienteID,
@@ -184,7 +204,7 @@ func TestOrdemServicoUseCase_Criar(t *testing.T) {
 }
 
 func TestOrdemServicoUseCase_AtualizarStatus_Invalido(t *testing.T) {
-	uc, clienteID, veiculoID, _ := setupOrdemServicoUC()
+	uc, clienteID, veiculoID, _, _, _ := setupOrdemServicoUC()
 
 	created, err := uc.Criar(context.Background(), dto.CriarOSRequest{
 		ClienteID: clienteID,
@@ -200,7 +220,7 @@ func TestOrdemServicoUseCase_AtualizarStatus_Invalido(t *testing.T) {
 }
 
 func TestOrdemServicoUseCase_AdicionarServico_RecalculaOrcamento(t *testing.T) {
-	uc, clienteID, veiculoID, servicoID := setupOrdemServicoUC()
+	uc, clienteID, veiculoID, servicoID, _, _ := setupOrdemServicoUC()
 
 	created, err := uc.Criar(context.Background(), dto.CriarOSRequest{
 		ClienteID: clienteID,
@@ -216,7 +236,7 @@ func TestOrdemServicoUseCase_AdicionarServico_RecalculaOrcamento(t *testing.T) {
 }
 
 func TestOrdemServicoUseCase_Finalizar_BaixaEstoque(t *testing.T) {
-	_, clienteID, veiculoID, servicoID := setupOrdemServicoUC()
+	_, clienteID, veiculoID, servicoID, _, _ := setupOrdemServicoUC()
 	pecaRepo := newMockPecaRepoUC()
 	peca := entity.NewPeca("Filtro", "FLT001", decimal.NewFromFloat(45), 10)
 	pecaRepo.pecas[peca.ID] = peca
@@ -229,25 +249,125 @@ func TestOrdemServicoUseCase_Finalizar_BaixaEstoque(t *testing.T) {
 	servicoRepo.servicos[servicoID] = entity.NewServico("Troca", "desc", decimal.NewFromFloat(100))
 	osRepo := newMockOSRepo()
 
-	uc := NewOrdemServicoUseCase(osRepo, clienteRepo, veiculoRepo, servicoRepo, pecaRepo)
+	uc := NewOrdemServicoUseCase(osRepo, clienteRepo, veiculoRepo, servicoRepo, pecaRepo, &mockNotificador{})
 
 	created, err := uc.Criar(context.Background(), dto.CriarOSRequest{ClienteID: clienteID, VeiculoID: veiculoID})
 	require.NoError(t, err)
 	_, err = uc.AdicionarPeca(context.Background(), created.ID, dto.AdicionarPecaOSRequest{PecaID: peca.ID, Quantidade: 2})
 	require.NoError(t, err)
 
-	statuses := []valobj.StatusOS{
-		valobj.StatusEmDiagnostico,
-		valobj.StatusAguardandoAprovacao,
-		valobj.StatusEmExecucao,
-		valobj.StatusFinalizada,
-	}
-	for _, s := range statuses {
+	for _, s := range []valobj.StatusOS{valobj.StatusEmDiagnostico, valobj.StatusAguardandoAprovacao} {
 		_, err := uc.AtualizarStatus(context.Background(), created.ID, dto.AtualizarStatusOSRequest{Status: string(s)})
 		require.NoError(t, err, "status %s", s)
 	}
+	_, err = uc.DecidirOrcamento(context.Background(), created.ID, dto.DecidirOrcamentoRequest{Aprovado: true})
+	require.NoError(t, err)
+	_, err = uc.AtualizarStatus(context.Background(), created.ID, dto.AtualizarStatusOSRequest{Status: string(valobj.StatusFinalizada)})
+	require.NoError(t, err)
 
 	assert.Equal(t, 8, pecaRepo.pecas[peca.ID].QuantidadeEstoque)
+	listadas, err := uc.Listar(context.Background())
+	require.NoError(t, err)
+	assert.Empty(t, listadas)
+}
+
+func TestOrdemServicoUseCase_Criar_ComServicosEPecas_NotificaAbertura(t *testing.T) {
+	uc, clienteID, veiculoID, servicoID, pecaID, notificador := setupOrdemServicoUC()
+
+	resp, err := uc.Criar(context.Background(), dto.CriarOSRequest{
+		ClienteID:   clienteID,
+		VeiculoID:   veiculoID,
+		Observacoes: "Barulho no motor",
+		Servicos:    []dto.AdicionarServicoOSRequest{{ServicoID: servicoID}},
+		Pecas:       []dto.AdicionarPecaOSRequest{{PecaID: pecaID, Quantidade: 2}},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, string(valobj.StatusRecebida), resp.Status)
+	assert.True(t, resp.ValorTotal.Equal(decimal.NewFromInt(240)))
+	assert.Len(t, resp.Servicos, 1)
+	assert.Len(t, resp.Pecas, 1)
+	assert.Equal(t, 1, notificador.chamadas)
+	assert.Equal(t, string(valobj.StatusRecebida), notificador.ultimo.StatusNovo)
+}
+
+func TestOrdemServicoUseCase_DecidirOrcamento_RecusaEAprova(t *testing.T) {
+	uc, clienteID, veiculoID, servicoID, _, notificador := setupOrdemServicoUC()
+	created, err := uc.Criar(context.Background(), dto.CriarOSRequest{
+		ClienteID: clienteID,
+		VeiculoID: veiculoID,
+		Servicos:  []dto.AdicionarServicoOSRequest{{ServicoID: servicoID}},
+	})
+	require.NoError(t, err)
+
+	for _, status := range []string{string(valobj.StatusEmDiagnostico), string(valobj.StatusAguardandoAprovacao)} {
+		_, err = uc.AtualizarStatus(context.Background(), created.ID, dto.AtualizarStatusOSRequest{Status: status})
+		require.NoError(t, err)
+	}
+
+	_, err = uc.AvancarStatus(context.Background(), created.ID)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "decisão explícita")
+
+	recusada, err := uc.DecidirOrcamento(context.Background(), created.ID, dto.DecidirOrcamentoRequest{
+		Aprovado: false,
+		Motivo:   "cliente pediu revisão",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, string(valobj.StatusEmDiagnostico), recusada.Status)
+	assert.Equal(t, "cliente pediu revisão", recusada.MotivoRecusa)
+
+	_, err = uc.AtualizarStatus(context.Background(), created.ID, dto.AtualizarStatusOSRequest{Status: string(valobj.StatusAguardandoAprovacao)})
+	require.NoError(t, err)
+	aprovada, err := uc.DecidirOrcamento(context.Background(), created.ID, dto.DecidirOrcamentoRequest{Aprovado: true})
+	require.NoError(t, err)
+	assert.Equal(t, string(valobj.StatusEmExecucao), aprovada.Status)
+	require.NotNil(t, aprovada.OrcamentoAprovado)
+	assert.True(t, *aprovada.OrcamentoAprovado)
+	assert.Greater(t, notificador.chamadas, 1)
+}
+
+func TestOrdemServicoUseCase_Listar_PrioridadeEAntiguidade(t *testing.T) {
+	uc, clienteID, veiculoID, servicoID, _, _ := setupOrdemServicoUC()
+	base := time.Date(2026, 1, 10, 9, 0, 0, 0, time.UTC)
+
+	recebida, err := uc.Criar(context.Background(), dto.CriarOSRequest{ClienteID: clienteID, VeiculoID: veiculoID})
+	require.NoError(t, err)
+	diagnostico, err := uc.Criar(context.Background(), dto.CriarOSRequest{
+		ClienteID: clienteID,
+		VeiculoID: veiculoID,
+		Servicos:  []dto.AdicionarServicoOSRequest{{ServicoID: servicoID}},
+	})
+	require.NoError(t, err)
+	execucao, err := uc.Criar(context.Background(), dto.CriarOSRequest{
+		ClienteID: clienteID,
+		VeiculoID: veiculoID,
+		Servicos:  []dto.AdicionarServicoOSRequest{{ServicoID: servicoID}},
+	})
+	require.NoError(t, err)
+
+	ajustar := func(id uuid.UUID, criado time.Time, status valobj.StatusOS) {
+		os, err := uc.osRepo.BuscarPorID(context.Background(), id)
+		require.NoError(t, err)
+		os.CriadoEm = criado
+		os.Status = status
+		require.NoError(t, uc.osRepo.Atualizar(context.Background(), os))
+	}
+	ajustar(recebida.ID, base.Add(2*time.Hour), valobj.StatusRecebida)
+	ajustar(diagnostico.ID, base.Add(3*time.Hour), valobj.StatusEmDiagnostico)
+	ajustar(execucao.ID, base, valobj.StatusEmExecucao)
+
+	encerrada := entity.NewOrdemServico(clienteID, veiculoID, "encerrada")
+	encerrada.Status = valobj.StatusFinalizada
+	agora := time.Now().UTC()
+	encerrada.ExcluidaEm = &agora
+	require.NoError(t, uc.osRepo.Criar(context.Background(), encerrada))
+
+	lista, err := uc.Listar(context.Background())
+	require.NoError(t, err)
+	require.Len(t, lista, 3)
+	assert.Equal(t, execucao.ID, lista[0].ID)
+	assert.Equal(t, diagnostico.ID, lista[1].ID)
+	assert.Equal(t, recebida.ID, lista[2].ID)
 }
 
 func TestAuthUseCase_Login(t *testing.T) {

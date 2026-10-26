@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/techchalleng/oficina/internal/application/port"
 	"github.com/techchalleng/oficina/internal/domain/entity"
-	"github.com/techchalleng/oficina/internal/domain/repository"
 	"github.com/techchalleng/oficina/internal/domain/valobj"
 )
 
@@ -17,7 +17,7 @@ type ClienteRepo struct {
 	pool *pgxpool.Pool
 }
 
-func NewClienteRepo(pool *pgxpool.Pool) repository.ClienteRepository {
+func NewClienteRepo(pool *pgxpool.Pool) port.ClienteRepository {
 	return &ClienteRepo{pool: pool}
 }
 
@@ -146,7 +146,7 @@ type VeiculoRepo struct {
 	pool *pgxpool.Pool
 }
 
-func NewVeiculoRepo(pool *pgxpool.Pool) repository.VeiculoRepository {
+func NewVeiculoRepo(pool *pgxpool.Pool) port.VeiculoRepository {
 	return &VeiculoRepo{pool: pool}
 }
 
@@ -241,7 +241,7 @@ type ServicoRepo struct {
 	pool *pgxpool.Pool
 }
 
-func NewServicoRepo(pool *pgxpool.Pool) repository.ServicoRepository {
+func NewServicoRepo(pool *pgxpool.Pool) port.ServicoRepository {
 	return &ServicoRepo{pool: pool}
 }
 
@@ -308,7 +308,7 @@ type PecaRepo struct {
 	pool *pgxpool.Pool
 }
 
-func NewPecaRepo(pool *pgxpool.Pool) repository.PecaRepository {
+func NewPecaRepo(pool *pgxpool.Pool) port.PecaRepository {
 	return &PecaRepo{pool: pool}
 }
 
