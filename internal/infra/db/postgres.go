@@ -118,8 +118,11 @@ CREATE TABLE IF NOT EXISTS ordens_servico (
     status VARCHAR(50) NOT NULL DEFAULT 'Recebida',
     valor_total NUMERIC(12,2) NOT NULL DEFAULT 0,
     observacoes TEXT,
+    orcamento_aprovado BOOLEAN,
+    motivo_recusa TEXT,
     criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     entregue_em TIMESTAMPTZ,
+    excluida_em TIMESTAMPTZ,
     atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -139,6 +142,10 @@ CREATE TABLE IF NOT EXISTS os_pecas (
     quantidade INT NOT NULL,
     valor_unitario NUMERIC(12,2) NOT NULL
 );
+
+ALTER TABLE ordens_servico ADD COLUMN IF NOT EXISTS orcamento_aprovado BOOLEAN;
+ALTER TABLE ordens_servico ADD COLUMN IF NOT EXISTS motivo_recusa TEXT;
+ALTER TABLE ordens_servico ADD COLUMN IF NOT EXISTS excluida_em TIMESTAMPTZ;
 `
 	_, err := pool.Exec(ctx, schema)
 	return err

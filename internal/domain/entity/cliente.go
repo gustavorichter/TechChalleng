@@ -9,13 +9,13 @@ import (
 
 // Cliente representa um cliente da oficina.
 type Cliente struct {
-	ID        uuid.UUID
-	Nome      string
-	CPF       *valobj.CPF
-	CNPJ      *valobj.CNPJ
-	Email     valobj.Email
-	Telefone  string
-	CriadoEm  time.Time
+	ID           uuid.UUID
+	Nome         string
+	CPF          *valobj.CPF
+	CNPJ         *valobj.CNPJ
+	Email        valobj.Email
+	Telefone     string
+	CriadoEm     time.Time
 	AtualizadoEm time.Time
 }
 

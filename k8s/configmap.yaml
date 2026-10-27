@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oficina-config
+  labels:
+    app.kubernetes.io/name: oficina-api
+    app.kubernetes.io/component: api
+data:
+  PORT: "8080"
+  # Service do PostgreSQL no mesmo namespace. Em cluster local, suba o banco
+  # com esse nome (ou aponte para host.docker.internal se o Postgres estiver no host).
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  DB_NAME: oficina_db
+  DB_SSLMODE: disable

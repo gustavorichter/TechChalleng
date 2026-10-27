@@ -127,7 +127,7 @@ func TestServicoUseCase_Criar(t *testing.T) {
 }
 
 func TestOrdemServicoUseCase_AcompanharStatus(t *testing.T) {
-	uc, clienteID, veiculoID, _ := setupOrdemServicoUC()
+	uc, clienteID, veiculoID, _, _, _ := setupOrdemServicoUC()
 
 	created, err := uc.Criar(context.Background(), dto.CriarOSRequest{ClienteID: clienteID, VeiculoID: veiculoID})
 	require.NoError(t, err)

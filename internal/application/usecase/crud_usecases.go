@@ -11,8 +11,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/techchalleng/oficina/internal/application/dto"
+	"github.com/techchalleng/oficina/internal/application/port"
 	"github.com/techchalleng/oficina/internal/domain/entity"
-	"github.com/techchalleng/oficina/internal/domain/repository"
 	"github.com/techchalleng/oficina/internal/domain/valobj"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -106,10 +106,10 @@ func HashPassword(password string) (string, error) {
 // --- Cliente UseCase ---
 
 type ClienteUseCase struct {
-	repo repository.ClienteRepository
+	repo port.ClienteRepository
 }
 
-func NewClienteUseCase(repo repository.ClienteRepository) *ClienteUseCase {
+func NewClienteUseCase(repo port.ClienteRepository) *ClienteUseCase {
 	return &ClienteUseCase{repo: repo}
 }
 
@@ -172,11 +172,11 @@ func (uc *ClienteUseCase) Excluir(ctx context.Context, id uuid.UUID) error {
 // --- Veículo UseCase ---
 
 type VeiculoUseCase struct {
-	veiculoRepo repository.VeiculoRepository
-	clienteRepo repository.ClienteRepository
+	veiculoRepo port.VeiculoRepository
+	clienteRepo port.ClienteRepository
 }
 
-func NewVeiculoUseCase(vRepo repository.VeiculoRepository, cRepo repository.ClienteRepository) *VeiculoUseCase {
+func NewVeiculoUseCase(vRepo port.VeiculoRepository, cRepo port.ClienteRepository) *VeiculoUseCase {
 	return &VeiculoUseCase{veiculoRepo: vRepo, clienteRepo: cRepo}
 }
 
@@ -226,10 +226,10 @@ func (uc *VeiculoUseCase) Excluir(ctx context.Context, id uuid.UUID) error {
 // --- Serviço UseCase ---
 
 type ServicoUseCase struct {
-	repo repository.ServicoRepository
+	repo port.ServicoRepository
 }
 
-func NewServicoUseCase(repo repository.ServicoRepository) *ServicoUseCase {
+func NewServicoUseCase(repo port.ServicoRepository) *ServicoUseCase {
 	return &ServicoUseCase{repo: repo}
 }
 
@@ -273,10 +273,10 @@ func (uc *ServicoUseCase) Excluir(ctx context.Context, id uuid.UUID) error {
 // --- Peça UseCase ---
 
 type PecaUseCase struct {
-	repo repository.PecaRepository
+	repo port.PecaRepository
 }
 
-func NewPecaUseCase(repo repository.PecaRepository) *PecaUseCase {
+func NewPecaUseCase(repo port.PecaRepository) *PecaUseCase {
 	return &PecaUseCase{repo: repo}
 }
 
