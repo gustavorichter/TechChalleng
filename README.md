@@ -65,7 +65,7 @@ A regra de orçamento, a máquina de estados da OS e a baixa de estoque permanec
 | Tráfego só para pods prontos | `readinessProbe` e `livenessProbe` em `GET /health`. O Service `oficina-api` (NodePort **30080**) balanceia entre os endpoints Ready. |
 | Estado fora do processo | A API é stateless (JWT). O PostgreSQL é um Deployment de 1 réplica com PVC, acessível só dentro do namespace. Sessão e estoque não ficam em memória do pod. |
 | Configuração separada da imagem | ConfigMap `oficina-config` (porta, host do banco, SSL) e Secret `oficina-secret` (credenciais, JWT, admin). A imagem `oficina-api:local` não carrega senha. |
-| Mesma topologia no CI | O workflow valida `terraform plan` em um cluster kind e faz `kubectl apply --dry-run=client` em `k8s/`. |
+| Mesma topologia no CI | O workflow sobe um cluster kind, aplica o PostgreSQL e os manifestos de `k8s/`, e confere `GET /health`. O `terraform plan` e o `kubectl apply --dry-run=client` continuam como validação. |
 
 O banco não escala com o HPA. O gargalo horizontal desta fase é a API. O PostgreSQL permanece uma instância com volume persistente, suficiente para o cenário local e para demonstrar que as réplicas compartilham o mesmo estado.
 
@@ -212,7 +212,8 @@ flowchart LR
     Sec --> Docker
     Test --> Docker
     Push --> TF["kind + terraform<br/>init, validate, plan"]
-    Push --> K8s["kubectl apply<br/>--dry-run=client -f k8s/"]
+    Push --> K8sLint["kubectl apply<br/>--dry-run=client -f k8s/"]
+    Docker --> Deploy["kind + load da imagem<br/>deploy do Postgres<br/>kubectl apply -f k8s/<br/>GET /health"]
 ```
 
 ---
@@ -418,11 +419,12 @@ A pasta `k8s/` contém:
 |---------|---------|
 | `configmap.yaml` | `oficina-config` (`DB_HOST=postgres`, porta 8080) |
 | `secret.yaml` | `oficina-secret` (credenciais locais em base64) |
+| `database/postgres.yaml` | PVC, Deployment e Service `postgres` |
 | `deployment.yaml` | `oficina-api`, 2 réplicas, probes em `/health` |
 | `service.yaml` | NodePort **30080** |
 | `hpa.yaml` | 2–6 réplicas, CPU 70%, memória 80% |
 
-O PostgreSQL não está nessa pasta. O ConfigMap aponta para o Service `postgres` no mesmo namespace. Suba o banco pelo Terraform (seção 3.3) ou garanta um Service com esse nome antes de esperar os pods da API ficarem Ready.
+O PostgreSQL está em `k8s/database/postgres.yaml` (PVC, Deployment e Service `postgres`). `kubectl apply -f k8s/` inclui essa pasta. O ConfigMap aponta para o Service `postgres` no mesmo namespace. O Terraform (seção 3.3) cria a mesma stack, com namespace `oficina`.
 
 Na raiz do repositório, com o cluster da seção 3.2 no contexto atual:
 
@@ -588,7 +590,7 @@ Grave nesta ordem. Cada linha é um corte objetivo: mostre a tela do comando e o
 | Ordem | O que demonstrar | Como evidenciar na tela | Critério |
 |------:|------------------|-------------------------|----------|
 | 1 | Arquitetura | Este README, seções 1 e 2: camadas `domain` / `application` / `infra` e o diagrama do namespace `oficina` | Solução refatorada e desenho da arquitetura |
-| 2 | Pipeline | GitHub Actions do workflow [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) verde: lint, gosec, testes, build da imagem, `terraform plan` no kind e `kubectl apply --dry-run=client -f k8s/` | Execução da pipeline |
+| 2 | Pipeline | GitHub Actions do workflow [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) verde: build da aplicação, testes, build da imagem, deploy no kind (banco + `kubectl apply` dos manifestos e `/health`), além de `terraform plan` e `kubectl apply --dry-run=client` | Execução da pipeline |
 | 3 | Deploy com Compose | `docker compose up --build -d` e `curl http://localhost:8081/health` retornando `{"status":"ok"}` | Ambiente local reproduzível |
 | 4 | Cluster local | `kind create cluster --name oficina` ou `minikube start`, seguido de `kubectl get nodes` e metrics-server em Running | Cluster Minikube ou Kind |
 | 5 | Terraform | `terraform -chdir=infra apply` e `kubectl -n oficina get pods,svc,hpa,pvc` com API, Postgres e HPA criados | IaC em `infra/` |

@@ -194,3 +194,66 @@ jobs:
         env:
           KUBECONFIG: ${{ github.workspace }}/.kube/config
         run: kubectl apply --dry-run=client --validate=true -f k8s/
+
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+      - security
+      - build-test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare kubeconfig path
+        run: mkdir -p "${{ github.workspace }}/.kube"
+
+      - name: Write Kind cluster config
+        run: |
+          cat > kind-config.yaml <<'EOF'
+          kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          nodes:
+            - role: control-plane
+              extraPortMappings:
+                - containerPort: 30080
+                  hostPort: 30080
+                  protocol: TCP
+          EOF
+
+      - name: Create local Kubernetes cluster
+        uses: helm/kind-action@v1.12.0
+        with:
+          cluster_name: oficina-deploy
+          kubectl_version: v1.32.2
+          config: kind-config.yaml
+          kubeconfig: ${{ github.workspace }}/.kube/config
+
+      - name: Build Docker image
+        run: docker build -t oficina-api:local .
+
+      - name: Load image into the cluster
+        run: kind load docker-image oficina-api:local --name oficina-deploy
+
+      - name: Deploy database
+        env:
+          KUBECONFIG: ${{ github.workspace }}/.kube/config
+        run: |
+          kubectl apply -f k8s/configmap.yaml -f k8s/secret.yaml
+          kubectl apply -f k8s/database/
+          kubectl rollout status deployment/postgres --timeout=180s
+
+      - name: Apply YAML manifests
+        env:
+          KUBECONFIG: ${{ github.workspace }}/.kube/config
+        run: |
+          kubectl apply -f k8s/configmap.yaml \
+            -f k8s/secret.yaml \
+            -f k8s/deployment.yaml \
+            -f k8s/service.yaml \
+            -f k8s/hpa.yaml
+          kubectl rollout status deployment/oficina-api --timeout=180s
+
+      - name: Check application health
+        run: curl -fsS http://localhost:30080/health
