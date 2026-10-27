@@ -191,4 +191,6 @@ jobs:
           kubeconfig: ${{ github.workspace }}/.kube/config
 
       - name: Validate manifests
+        env:
+          KUBECONFIG: ${{ github.workspace }}/.kube/config
         run: kubectl apply --dry-run=client --validate=true -f k8s/
