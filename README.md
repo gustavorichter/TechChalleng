@@ -6,7 +6,7 @@ Back-end de gestão de ordens de serviço (OS) de uma oficina mecânica, refator
 
 ## Tech Challenge — Fase 2
 
-**Grupo 21**
+**Grupo 122**
 
 | Integrante | Contato |
 |------------|---------|
@@ -20,8 +20,6 @@ Back-end de gestão de ordens de serviço (OS) de uma oficina mecânica, refator
 | Documentação DDD (Miro) | [Board Miro](https://miro.com/welcomeonboard/bmZ0RDZva2xEaHZ0STFGVlQrWFhtcXlnMnRBYklUN0tkcWM3ajJ3cGkzd3BDY3B6TGJ3dTR0UkNSYWJBQ0VZZ2tTMElJZ1h3NVNUNUpybmU2cmFURG13emcrQmswRHVxemtESmhSMHZqVGN1bkMzTE1SSmo4U0p6d1E4ZExnYVpBd044SHFHaVlWYWk0d3NxeHNmeG9BPT0hdjE=?share_link_id=382550460994) |
 | Código-fonte | [GitHub](https://github.com/gustavorichter/TechChalleng) |
 | Relatório de vulnerabilidades | [Google Drive](https://drive.google.com/file/d/1lLypdttNCF8Rw-6RwmpV7TVulzg_0uaa/view?usp=sharing) |
-
-O checklist da gravação da Fase 2 está na [seção 6](#6-checklist-para-a-gravação-do-vídeo).
 
 ---
 
@@ -580,26 +578,6 @@ curl -X POST http://localhost:8081/api/v1/auth/login \
 ```
 
 No cluster, troque a porta `8081` por `30080`.
-
----
-
-## 6. Checklist para a Gravação do Vídeo
-
-Grave nesta ordem. Cada linha é um corte objetivo: mostre a tela do comando e o resultado, sem narrar só o slide.
-
-| Ordem | O que demonstrar | Como evidenciar na tela | Critério |
-|------:|------------------|-------------------------|----------|
-| 1 | Arquitetura | Este README, seções 1 e 2: camadas `domain` / `application` / `infra` e o diagrama do namespace `oficina` | Solução refatorada e desenho da arquitetura |
-| 2 | Pipeline | GitHub Actions do workflow [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) verde: build da aplicação, testes, build da imagem, deploy no kind (banco + `kubectl apply` dos manifestos e `/health`), além de `terraform plan` e `kubectl apply --dry-run=client` | Execução da pipeline |
-| 3 | Deploy com Compose | `docker compose up --build -d` e `curl http://localhost:8081/health` retornando `{"status":"ok"}` | Ambiente local reproduzível |
-| 4 | Cluster local | `kind create cluster --name oficina` ou `minikube start`, seguido de `kubectl get nodes` e metrics-server em Running | Cluster Minikube ou Kind |
-| 5 | Terraform | `terraform -chdir=infra apply` e `kubectl -n oficina get pods,svc,hpa,pvc` com API, Postgres e HPA criados | IaC em `infra/` |
-| 6 | Manifestos | `kubectl apply -f k8s/` (ou `-n oficina`) e o rollout do Deployment `oficina-api` | Deploy declarativo |
-| 7 | APIs | Collection Bruno (`.bruno/`): login, criação de cliente, abertura de OS e `GET /ordens-servico/{id}/status` sem token | Endpoints das APIs |
-| 8 | HPA | Carga da seção 4, `kubectl -n oficina get hpa -w` com CPU acima de 70% e réplicas subindo de 2 até no máximo 6; em seguida a queda da carga | Escalabilidade automática |
-| 9 | Encerramento | `kubectl -n oficina delete deployment loadgen` e, se for limpar o ambiente, `terraform -chdir=infra destroy` | Ambiente voltou ao estado inicial |
-
-Antes de gravar, confirme três coisas: o contexto do `kubectl` é o cluster local, a imagem `oficina-api:local` já foi carregada nesse cluster, e `kubectl -n kube-system get pods` mostra o metrics-server Ready. Sem esse último, o item 8 não tem métrica para exibir.
 
 ---
 
