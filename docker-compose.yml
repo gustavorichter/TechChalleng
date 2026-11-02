@@ -4,24 +4,27 @@ services:
     container_name: oficina_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: oficina
-      POSTGRES_PASSWORD: oficina_secret
-      POSTGRES_DB: oficina_db
+      POSTGRES_USER: ${DB_USER:-oficina}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-oficina_secret}
+      POSTGRES_DB: ${DB_NAME:-oficina_db}
     ports:
-      - "5432:5432"
+      - "${DB_HOST_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U oficina -d oficina_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-oficina} -d ${DB_NAME:-oficina_db}"]
       interval: 5s
       timeout: 5s
       retries: 10
       start_period: 10s
+    networks:
+      - oficina-net
 
   api:
     build:
       context: .
       dockerfile: Dockerfile
+    image: oficina-api:local
     container_name: oficina_api
     restart: unless-stopped
     depends_on:
@@ -31,15 +34,32 @@ services:
       PORT: "8080"
       DB_HOST: postgres
       DB_PORT: "5432"
-      DB_USER: oficina
-      DB_PASSWORD: oficina_secret
-      DB_NAME: oficina_db
-      DB_SSLMODE: disable
-      JWT_SECRET: super-secret-jwt-key-change-me
-      ADMIN_USERNAME: admin
-      ADMIN_PASSWORD: admin123
+      DB_USER: ${DB_USER:-oficina}
+      DB_PASSWORD: ${DB_PASSWORD:-oficina_secret}
+      DB_NAME: ${DB_NAME:-oficina_db}
+      DB_SSLMODE: ${DB_SSLMODE:-disable}
+      JWT_SECRET: ${JWT_SECRET:-super-secret-jwt-key-change-me}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
     ports:
       - "${APP_HOST_PORT:-8081}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 25s
+    networks:
+      - oficina-net
 
 volumes:
   postgres_data:
+
+networks:
+  oficina-net:
+    driver: bridge

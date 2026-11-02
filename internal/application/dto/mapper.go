@@ -73,17 +73,20 @@ func ToOrdemServicoResponse(os *entity.OrdemServico) OrdemServicoResponse {
 		}
 	}
 	return OrdemServicoResponse{
-		ID:           os.ID,
-		ClienteID:    os.ClienteID,
-		VeiculoID:    os.VeiculoID,
-		Status:       string(os.Status),
-		ValorTotal:   os.ValorTotal,
-		Observacoes:  os.Observacoes,
-		Servicos:     servicos,
-		Pecas:        pecas,
-		CriadoEm:     os.CriadoEm,
-		EntregueEm:   os.EntregueEm,
-		AtualizadoEm: os.AtualizadoEm,
+		ID:                os.ID,
+		ClienteID:         os.ClienteID,
+		VeiculoID:         os.VeiculoID,
+		Status:            string(os.Status),
+		ValorTotal:        os.ValorTotal,
+		Observacoes:       os.Observacoes,
+		Servicos:          servicos,
+		Pecas:             pecas,
+		OrcamentoAprovado: os.OrcamentoAprovado,
+		MotivoRecusa:      os.MotivoRecusa,
+		CriadoEm:          os.CriadoEm,
+		EntregueEm:        os.EntregueEm,
+		ExcluidaEm:        os.ExcluidaEm,
+		AtualizadoEm:      os.AtualizadoEm,
 	}
 }
 

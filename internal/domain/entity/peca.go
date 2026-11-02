@@ -10,14 +10,14 @@ import (
 
 // Peca representa uma peça ou insumo do estoque.
 type Peca struct {
-	ID               uuid.UUID
-	Nome             string
-	Codigo           string
-	ValorUnitario    decimal.Decimal
+	ID                uuid.UUID
+	Nome              string
+	Codigo            string
+	ValorUnitario     decimal.Decimal
 	QuantidadeEstoque int
-	Ativo            bool
-	CriadoEm         time.Time
-	AtualizadoEm     time.Time
+	Ativo             bool
+	CriadoEm          time.Time
+	AtualizadoEm      time.Time
 }
 
 func NewPeca(nome, codigo string, valorUnitario decimal.Decimal, quantidade int) *Peca {

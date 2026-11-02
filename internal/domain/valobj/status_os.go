@@ -71,3 +71,26 @@ func (s StatusOS) PodeTransicionarPara(destino StatusOS) bool {
 func (s StatusOS) RequerBaixaEstoque() bool {
 	return s == StatusFinalizada
 }
+
+// OcultaDaListagem indica os status encerrados, ocultos da listagem operacional.
+func (s StatusOS) OcultaDaListagem() bool {
+	return s == StatusFinalizada || s == StatusEntregue
+}
+
+// PrioridadeListagem define a ordem operacional da fila.
+// Quanto menor o número, maior a prioridade:
+// Em execução > Aguardando aprovação > Em diagnóstico > Recebida.
+func (s StatusOS) PrioridadeListagem() int {
+	switch s {
+	case StatusEmExecucao:
+		return 1
+	case StatusAguardandoAprovacao:
+		return 2
+	case StatusEmDiagnostico:
+		return 3
+	case StatusRecebida:
+		return 4
+	default:
+		return 100
+	}
+}

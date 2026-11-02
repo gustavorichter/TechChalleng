@@ -2,6 +2,8 @@ package entity
 
 import (
 	"errors"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,17 +28,20 @@ type ItemPecaOS struct {
 
 // OrdemServico é o Aggregate Root do domínio de atendimento.
 type OrdemServico struct {
-	ID            uuid.UUID
-	ClienteID     uuid.UUID
-	VeiculoID     uuid.UUID
-	Status        valobj.StatusOS
-	ValorTotal    decimal.Decimal
-	Observacoes   string
-	Servicos      []ItemServicoOS
-	Pecas         []ItemPecaOS
-	CriadoEm      time.Time
-	EntregueEm    *time.Time
-	AtualizadoEm  time.Time
+	ID                uuid.UUID
+	ClienteID         uuid.UUID
+	VeiculoID         uuid.UUID
+	Status            valobj.StatusOS
+	ValorTotal        decimal.Decimal
+	Observacoes       string
+	Servicos          []ItemServicoOS
+	Pecas             []ItemPecaOS
+	OrcamentoAprovado *bool
+	MotivoRecusa      string
+	CriadoEm          time.Time
+	EntregueEm        *time.Time
+	ExcluidaEm        *time.Time
+	AtualizadoEm      time.Time
 }
 
 // NewOrdemServico cria uma nova OS no status inicial "Recebida".
@@ -85,14 +90,77 @@ func (os *OrdemServico) AtualizarStatus(novoStatus valobj.StatusOS) error {
 	if err != nil {
 		return err
 	}
+	now := time.Now().UTC()
 	os.Status = proximo
-	os.AtualizadoEm = time.Now().UTC()
+	os.AtualizadoEm = now
 
 	if proximo == valobj.StatusEntregue {
-		now := time.Now().UTC()
 		os.EntregueEm = &now
 	}
+	if proximo.OcultaDaListagem() && os.ExcluidaEm == nil {
+		os.ExcluidaEm = &now
+	}
 	return nil
+}
+
+// AprovarOrcamento confirma o orçamento e inicia a execução.
+func (os *OrdemServico) AprovarOrcamento() error {
+	if os.Status != valobj.StatusAguardandoAprovacao {
+		return errors.New("orçamento só pode ser aprovado quando a OS está aguardando aprovação")
+	}
+	if len(os.Servicos) == 0 && len(os.Pecas) == 0 {
+		return errors.New("não é possível aprovar um orçamento sem serviços ou peças")
+	}
+	aprovado := true
+	os.OrcamentoAprovado = &aprovado
+	os.MotivoRecusa = ""
+	return os.AtualizarStatus(valobj.StatusEmExecucao)
+}
+
+// RecusarOrcamento devolve a OS ao diagnóstico para revisão do orçamento.
+func (os *OrdemServico) RecusarOrcamento(motivo string) error {
+	if os.Status != valobj.StatusAguardandoAprovacao {
+		return errors.New("orçamento só pode ser recusado quando a OS está aguardando aprovação")
+	}
+	motivo = strings.TrimSpace(motivo)
+	if motivo == "" {
+		return errors.New("motivo da recusa é obrigatório")
+	}
+	recusado := false
+	os.OrcamentoAprovado = &recusado
+	os.MotivoRecusa = motivo
+	os.Status = valobj.StatusEmDiagnostico
+	os.AtualizadoEm = time.Now().UTC()
+	return nil
+}
+
+// VisivelNaListagem indica se a OS permanece na fila operacional.
+func (os *OrdemServico) VisivelNaListagem() bool {
+	if os == nil || os.ExcluidaEm != nil {
+		return false
+	}
+	return !os.Status.OcultaDaListagem()
+}
+
+// FiltrarEOrdenarListagem oculta OS finalizadas ou entregues e ordena a fila.
+// Prioridade: Em execução, Aguardando aprovação, Em diagnóstico, Recebida.
+// Dentro do mesmo status, as mais antigas vêm primeiro.
+func FiltrarEOrdenarListagem(ordens []*OrdemServico) []*OrdemServico {
+	ativas := make([]*OrdemServico, 0, len(ordens))
+	for _, os := range ordens {
+		if os.VisivelNaListagem() {
+			ativas = append(ativas, os)
+		}
+	}
+	sort.SliceStable(ativas, func(i, j int) bool {
+		pi := ativas[i].Status.PrioridadeListagem()
+		pj := ativas[j].Status.PrioridadeListagem()
+		if pi != pj {
+			return pi < pj
+		}
+		return ativas[i].CriadoEm.Before(ativas[j].CriadoEm)
+	})
+	return ativas
 }
 
 // AvancarStatus avança automaticamente para o próximo status na sequência.

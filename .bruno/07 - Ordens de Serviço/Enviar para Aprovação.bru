@@ -1,0 +1,31 @@
+meta {
+  name: Enviar para Aprovação
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{baseUrl}}/api/v1/ordens-servico/{{osId}}/status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "status": "Aguardando aprovação"
+  }
+}
+
+docs {
+  Execute depois de "Atualizar Status OS" (a OS precisa estar em "Em diagnóstico")
+  e com ao menos um serviço ou uma peça já vinculados.
+  O próximo passo é "Decidir Orçamento".
+}

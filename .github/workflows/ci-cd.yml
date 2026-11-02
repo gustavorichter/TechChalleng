@@ -1,0 +1,259 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+concurrency:
+  group: ci-cd-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
+          args: --timeout=5m
+
+  security:
+    name: Security checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+
+      - name: Run gosec
+        run: $(go env GOPATH)/bin/gosec ./...
+
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Run govulncheck
+        run: $(go env GOPATH)/bin/govulncheck ./...
+
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Compile
+        run: go build -trimpath -ldflags="-w -s" -o bin/server ./cmd/api
+
+      - name: Unit tests
+        run: go test ./... -count=1 -cover -skip '^TestIntegracaoHTTP'
+
+      - name: Integration tests
+        run: go test ./internal/infra/http/handler -count=1 -cover -run '^TestIntegracaoHTTP'
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+      - security
+      - build-test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t oficina-api:${{ github.sha }} -t oficina-api:local .
+
+      - name: Validate image config
+        run: |
+          set -euo pipefail
+          user="$(docker image inspect oficina-api:local --format '{{.Config.User}}')"
+          entrypoint="$(docker image inspect oficina-api:local --format '{{index .Config.Entrypoint 0}}')"
+          test "${user}" = "appuser"
+          test "${entrypoint}" = "/app/server"
+          docker image inspect oficina-api:local --format '{{json .Config.ExposedPorts}}' | grep -q '8080/tcp'
+
+      - name: Start stack with the built image
+        run: docker compose up -d --no-build
+
+      - name: Wait for health endpoint
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8081/health; then
+              echo "API is healthy"
+              exit 0
+            fi
+            echo "Waiting for application startup... ($i/30)"
+            sleep 2
+          done
+          echo "Application did not become healthy in time" >&2
+          docker compose ps
+          docker compose logs --tail=200
+          exit 1
+
+      - name: Stop stack
+        if: always()
+        run: docker compose down -v
+
+  iac-validation:
+    name: IaC Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare kubeconfig path
+        run: mkdir -p "${{ github.workspace }}/.kube"
+
+      - name: Create local Kubernetes cluster
+        uses: helm/kind-action@v1.12.0
+        with:
+          cluster_name: oficina-ci
+          kubectl_version: v1.32.2
+          kubeconfig: ${{ github.workspace }}/.kube/config
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+          terraform_wrapper: false
+
+      - name: Terraform init
+        working-directory: infra
+        run: terraform init -input=false
+
+      - name: Terraform validate
+        working-directory: infra
+        run: terraform validate
+
+      - name: Terraform plan
+        working-directory: infra
+        run: |
+          terraform plan -input=false -lock=false \
+            -var="kubeconfig_path=${{ github.workspace }}/.kube/config" \
+            -var="kube_context=kind-oficina-ci"
+
+  kubernetes-lint:
+    name: Kubernetes Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare kubeconfig path
+        run: mkdir -p "${{ github.workspace }}/.kube"
+
+      # --validate=true baixa o OpenAPI do API server. Sem cluster, o kubectl
+      # cai no default localhost:8080 e a validação falha antes de ler os YAML.
+      - name: Create local Kubernetes cluster
+        uses: helm/kind-action@v1.12.0
+        with:
+          cluster_name: oficina-ci
+          kubectl_version: v1.32.2
+          kubeconfig: ${{ github.workspace }}/.kube/config
+
+      - name: Validate manifests
+        env:
+          KUBECONFIG: ${{ github.workspace }}/.kube/config
+        run: kubectl apply --dry-run=client --validate=true -f k8s/
+
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+      - security
+      - build-test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare kubeconfig path
+        run: mkdir -p "${{ github.workspace }}/.kube"
+
+      - name: Write Kind cluster config
+        run: |
+          cat > kind-config.yaml <<'EOF'
+          kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          nodes:
+            - role: control-plane
+              extraPortMappings:
+                - containerPort: 30080
+                  hostPort: 30080
+                  protocol: TCP
+          EOF
+
+      - name: Create local Kubernetes cluster
+        uses: helm/kind-action@v1.12.0
+        with:
+          cluster_name: oficina-deploy
+          kubectl_version: v1.32.2
+          config: kind-config.yaml
+          kubeconfig: ${{ github.workspace }}/.kube/config
+
+      - name: Build Docker image
+        run: docker build -t oficina-api:local .
+
+      - name: Load image into the cluster
+        run: kind load docker-image oficina-api:local --name oficina-deploy
+
+      - name: Deploy database
+        env:
+          KUBECONFIG: ${{ github.workspace }}/.kube/config
+        run: |
+          kubectl apply -f k8s/configmap.yaml -f k8s/secret.yaml
+          kubectl apply -f k8s/database/
+          kubectl rollout status deployment/postgres --timeout=180s
+
+      - name: Apply YAML manifests
+        env:
+          KUBECONFIG: ${{ github.workspace }}/.kube/config
+        run: |
+          kubectl apply -f k8s/configmap.yaml \
+            -f k8s/secret.yaml \
+            -f k8s/deployment.yaml \
+            -f k8s/service.yaml \
+            -f k8s/hpa.yaml
+          kubectl rollout status deployment/oficina-api --timeout=180s
+
+      - name: Check application health
+        run: curl -fsS http://localhost:30080/health

@@ -1,4 +1,4 @@
-package repository
+package port
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/techchalleng/oficina/internal/domain/entity"
 )
 
-// ClienteRepository define operações de persistência para Cliente.
+// ClienteRepository é a porta de persistência de clientes.
 type ClienteRepository interface {
 	Criar(ctx context.Context, cliente *entity.Cliente) error
 	BuscarPorID(ctx context.Context, id uuid.UUID) (*entity.Cliente, error)
@@ -16,7 +16,7 @@ type ClienteRepository interface {
 	Excluir(ctx context.Context, id uuid.UUID) error
 }
 
-// VeiculoRepository define operações de persistência para Veiculo.
+// VeiculoRepository é a porta de persistência de veículos.
 type VeiculoRepository interface {
 	Criar(ctx context.Context, veiculo *entity.Veiculo) error
 	BuscarPorID(ctx context.Context, id uuid.UUID) (*entity.Veiculo, error)
@@ -26,7 +26,7 @@ type VeiculoRepository interface {
 	Excluir(ctx context.Context, id uuid.UUID) error
 }
 
-// ServicoRepository define operações de persistência para Servico.
+// ServicoRepository é a porta de persistência do catálogo de serviços.
 type ServicoRepository interface {
 	Criar(ctx context.Context, servico *entity.Servico) error
 	BuscarPorID(ctx context.Context, id uuid.UUID) (*entity.Servico, error)
@@ -35,7 +35,7 @@ type ServicoRepository interface {
 	Excluir(ctx context.Context, id uuid.UUID) error
 }
 
-// PecaRepository define operações de persistência para Peca.
+// PecaRepository é a porta de persistência do estoque de peças.
 type PecaRepository interface {
 	Criar(ctx context.Context, peca *entity.Peca) error
 	BuscarPorID(ctx context.Context, id uuid.UUID) (*entity.Peca, error)
@@ -44,7 +44,7 @@ type PecaRepository interface {
 	Excluir(ctx context.Context, id uuid.UUID) error
 }
 
-// OrdemServicoRepository define operações de persistência para OrdemServico.
+// OrdemServicoRepository é a porta de persistência do agregado Ordem de Serviço.
 type OrdemServicoRepository interface {
 	Criar(ctx context.Context, os *entity.OrdemServico) error
 	BuscarPorID(ctx context.Context, id uuid.UUID) (*entity.OrdemServico, error)

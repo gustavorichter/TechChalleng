@@ -9,13 +9,13 @@ import (
 
 // Servico representa um serviço oferecido pela oficina.
 type Servico struct {
-	ID            uuid.UUID
-	Nome          string
-	Descricao     string
-	ValorMaoObra  decimal.Decimal
-	Ativo         bool
-	CriadoEm      time.Time
-	AtualizadoEm  time.Time
+	ID           uuid.UUID
+	Nome         string
+	Descricao    string
+	ValorMaoObra decimal.Decimal
+	Ativo        bool
+	CriadoEm     time.Time
+	AtualizadoEm time.Time
 }
 
 func NewServico(nome, descricao string, valorMaoObra decimal.Decimal) *Servico {

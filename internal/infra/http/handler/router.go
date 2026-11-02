@@ -2,10 +2,10 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/techchalleng/oficina/internal/application/usecase"
-	"github.com/techchalleng/oficina/internal/infra/http/middleware"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/techchalleng/oficina/internal/application/usecase"
+	"github.com/techchalleng/oficina/internal/infra/http/middleware"
 )
 
 // Handlers agrupa todos os handlers HTTP da aplicação.
@@ -92,5 +92,6 @@ func RegisterRoutes(r *gin.Engine, h *Handlers, authUC *usecase.AuthUseCase) {
 		admin.POST("/ordens-servico/:id/pecas", h.OrdemServico.AdicionarPeca)
 		admin.PUT("/ordens-servico/:id/status", h.OrdemServico.AtualizarStatus)
 		admin.POST("/ordens-servico/:id/avancar", h.OrdemServico.AvancarStatus)
+		admin.POST("/ordens-servico/:id/orcamento", h.OrdemServico.DecidirOrcamento)
 	}
 }

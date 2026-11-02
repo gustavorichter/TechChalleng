@@ -34,6 +34,7 @@ import (
 	"github.com/techchalleng/oficina/internal/application/usecase"
 	"github.com/techchalleng/oficina/internal/infra/db"
 	"github.com/techchalleng/oficina/internal/infra/http/handler"
+	"github.com/techchalleng/oficina/internal/infra/notification"
 
 	_ "github.com/techchalleng/oficina/docs"
 )
@@ -66,7 +67,8 @@ func main() {
 	veiculoUC := usecase.NewVeiculoUseCase(veiculoRepo, clienteRepo)
 	servicoUC := usecase.NewServicoUseCase(servicoRepo)
 	pecaUC := usecase.NewPecaUseCase(pecaRepo)
-	osUC := usecase.NewOrdemServicoUseCase(osRepo, clienteRepo, veiculoRepo, servicoRepo, pecaRepo)
+	notificador := notification.NewEmailSimulado()
+	osUC := usecase.NewOrdemServicoUseCase(osRepo, clienteRepo, veiculoRepo, servicoRepo, pecaRepo, notificador)
 
 	// HTTP
 	gin.SetMode(gin.ReleaseMode)
